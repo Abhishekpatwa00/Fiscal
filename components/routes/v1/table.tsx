@@ -9,14 +9,29 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { createColumnHelper } from "@tanstack/react-table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
+import { createClient } from "@/lib/supabase/client"
 import { type DataTableFeatures } from "./data-table-features"
 import { Button } from "../../ui/button"
 import { MoreHorizontal } from "lucide-react"
+import { EditExpense } from "./edit"
 
 
 type Expenses = {
-  id?: number
+  id: number
   user_id: string
   title: string
   amount: number
@@ -28,8 +43,15 @@ const columnHelper = createColumnHelper<DataTableFeatures, Expenses>()
 
 
 export const TableElement = ({ expenses }: { expenses: Expenses[] }) => {
-
+  const supabase = createClient()
   const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0)
+
+  async function handleDelete (id:number) {
+    const {error} = await supabase.from("expense").delete().eq('id',id)
+  }
+  const handleEdit = (id:number) => {
+    return
+  }
 
   return (
     <div className="flex">
@@ -58,7 +80,15 @@ export const TableElement = ({ expenses }: { expenses: Expenses[] }) => {
                 <TableCell>{expense.expense_date}</TableCell>
                 <TableCell>{expense.tag}</TableCell>
                 <TableCell>
-                  <Button variant={"outline"} size={"icon-sm"}><MoreHorizontal/></Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger render={<Button variant="outline"><MoreHorizontal/></Button>} />
+                        <DropdownMenuContent >
+                          <DropdownMenuGroup className={"flex flex-col gap-1"}>
+                            <DropdownMenuItem render={<Button onClick={()=> handleDelete(expense.id)} className={"w-30"} variant={"destructive"}>Delete</Button>}></DropdownMenuItem>
+                            <EditExpense expense={expense}/>
+                      </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                 </TableCell>
               </TableRow>
             )
