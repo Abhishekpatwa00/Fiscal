@@ -26,7 +26,7 @@ type Expenses = {
 
 
 
-export const AddExpense = ({ onAddSuccess }: { onAddSuccess: () => void }) => {
+export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
   const supabase = createClient();
 
   const initialForm = {
@@ -36,17 +36,24 @@ export const AddExpense = ({ onAddSuccess }: { onAddSuccess: () => void }) => {
     expense_date: "",
   }
   const [expense, setExpense] = useState<Expenses>(initialForm)
+  async function checkUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    return user?.id
+  }
 
-  const userId = "859484ce-e686-4861-af3d-e4d60e714850"
 
 
 
-  const handleSubmit = async (e:FormEvent) => {
+
+  const handleSubmit = async (e: FormEvent) => {
+
     e.preventDefault();
+    const userId = await checkUser()
+
     const formData = new FormData(e.target as HTMLFormElement);
 
     const data = Object.fromEntries(formData as FormData)
-    console.log(data.title)
+
 
     const { error } = await supabase.from('expense').insert({
       user_id: userId,
@@ -57,12 +64,18 @@ export const AddExpense = ({ onAddSuccess }: { onAddSuccess: () => void }) => {
     })
     if (error) console.log(error)
     if (!error) {
-      onAddSuccess(),
+      onAddSuccess()
         toast.add({
           type: "success",
           description: "The expense have been addedd."
         })
       setExpense(initialForm)
+    } else {
+      toast.add({
+        type: "error",
+        description: "The creation was unsuccessful.",
+        priority: "high",
+      })
     }
 
 

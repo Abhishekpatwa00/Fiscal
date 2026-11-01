@@ -25,7 +25,7 @@ export default function V1  () {
   const supabase = createClient();
 
   const [expenses, setExpenses] = useState<Expenses[]>([]);
-
+  const [userId,setUserId] = useState<string | undefined>("")
 
 
 
@@ -37,19 +37,23 @@ export default function V1  () {
     }
 
   async function getData() {
-    const userId = await checkUser()
-    console.log(userId)
+    const user = await checkUser()
+    console.log(user)
+
     const { data, error } = await supabase
       .from('expense')
       .select(`
         id,user_id,title,amount,tag,expense_date
       `)
-      .eq('user_id', userId)
+      .eq('user_id', user)
 
     console.log(data)
     if (data) {
       setExpenses(data)
     }
+    console.log(userId)
+
+
   }
 
   useEffect( () => {
@@ -70,10 +74,10 @@ export default function V1  () {
     <>
       <div className="flex flex-col   w-196 mx-auto gap-4">
         <div className="flex justify-end mr-4">
-          <AddExpense onAddSuccess={getData}/>
+          <AddExpense onAddSuccess={getData} />
         </div>
         <div >
-          <TableElement expenses={expenses}></TableElement>
+          <TableElement onChangeSuccess={getData} expenses={expenses}></TableElement>
         </div>
         <Button onClick={userOut}>Log out</Button>
       </div>

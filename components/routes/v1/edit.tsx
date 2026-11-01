@@ -35,7 +35,7 @@ type expParam = {
 
 
 
-export const EditExpense = ({ expense }: {  expense : expParam }) => {
+export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : expParam }) => {
   const supabase = createClient();
 
   const initialForm = {
@@ -56,17 +56,29 @@ export const EditExpense = ({ expense }: {  expense : expParam }) => {
     const data = Object.fromEntries(formData as FormData)
 
     console.log(expenses.tag)
+    console.log(expense.id)
     const { error } = await supabase.from("expense").update({
       "title": expenses.title,
       "amount": expenses.amount,
       "tag": expenses.tag,
       "expense_date" : expenses.expense_date
 
-    }).eq("user_id" , expense.user_id)
+    }).eq("id" , expense.id).eq("user_id" , expense.user_id)
     if(error){
-        console.log(error.message)
+      console.log(error.message)
+      toast.add({
+        type: "error",
+        description: "The edit was unsuccessful.",
+        priority: "high",
+      })
     } else {
       console.log("edit successFull")
+      toast.add({
+        type: "success",
+        description: "The expense has been edited.",
+      })
+      onEdit()
+
     }
 
   }
@@ -79,7 +91,7 @@ export const EditExpense = ({ expense }: {  expense : expParam }) => {
     <>
       <Sheet>
         <SheetTrigger render={
-          <Button className={"w-30"} variant={"outline"}>Edit</Button>
+          <Button  variant={"outline"}>Edit</Button>
         } />
         <SheetContent>
           <SheetHeader>

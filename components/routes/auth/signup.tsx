@@ -40,7 +40,7 @@ export const SignUp = () => {
         email,
       password,
       options: {
-           emailRedirectTo: 'https://localhost:3000',
+           emailRedirectTo: "http://localhost:3000/auth/callback",
          },
       })
 
