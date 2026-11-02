@@ -1,7 +1,7 @@
 "use client"
 
 
-
+import {AddCsv} from "@/components/routes/v1/csv"
 import {Button} from "@/components/ui/button"
 import { AddExpense } from "@/components/routes/v1/add"
 import { TableElement } from "@/components/routes/v1/table"
@@ -10,7 +10,7 @@ import { useEffect , useState } from "react"
 import { redirect } from "next/navigation"
 
 type Expenses = {
-  id?: number
+  id: number
   user_id: string
   title: string
   amount: number
@@ -24,7 +24,7 @@ type Expenses = {
 export default function V1  () {
   const supabase = createClient();
 
-  const [expenses, setExpenses] = useState<Expenses[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [userId,setUserId] = useState<string | undefined>("")
 
 
@@ -73,7 +73,8 @@ export default function V1  () {
 
     <>
       <div className="flex flex-col   w-196 mx-auto gap-4">
-        <div className="flex justify-end mr-4">
+        <div className="flex justify-end gap-4 mr-4">
+          <AddCsv />
           <AddExpense onAddSuccess={getData} />
         </div>
         <div >

@@ -1,5 +1,5 @@
 "use client"
-
+import { toast } from "@/components/ui/toast"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -34,7 +34,7 @@ export const SignUp = () => {
     console.log(email, password)
     setEmail(email)
     setPassword(password)
-
+    console.log(email,password)
 
     const { data, error } = await supabase.auth.signUp({
         email,
@@ -48,10 +48,26 @@ export const SignUp = () => {
     if (!error) {
       console.log("user Signed in")
       setShowPopup(true)
+      toast.add({
+        type: "success",
+        description: "The creation was successful.",
+
+
+      })
 
 
 
+
+    } else {
+      console.log(error.message)
+      toast.add({
+        type: "error",
+        description: error.message || "The account creation was unsuccessful.",
+        priority: "high",
+
+      })
     }
+
 
   }
   return (
@@ -86,7 +102,7 @@ export const SignUp = () => {
                         <Label htmlFor="password">Password</Label>
 
                       </div>
-                      <Input id="password" type="password" name="password" required />
+                      <Input id="password" minLength={6} type="password" name="password" required />
                     </div>
                   </div>
 
