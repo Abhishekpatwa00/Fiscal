@@ -1,4 +1,5 @@
 "use client"
+
 import { EditCsv } from "./edit-csv"
 import {
   AlertDialog,
@@ -33,7 +34,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "../../ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { EditExpense } from "./edit"
-import { useState } from "react"
+import { Dispatch, SetStateAction } from "react"
 
 type Expenses = {
   id: number
@@ -44,7 +45,7 @@ type Expenses = {
   expense_date: string
 }
 
-type CsvExpense = {
+export type CsvExpense = {
   id: string
   title: string
   amount: number
@@ -52,15 +53,25 @@ type CsvExpense = {
   expense_date: string
 }
 
-export const TableElement = ( {onChangeSuccess ,expenses , CsvExpense }: { onChangeSuccess?: () => void , expenses?: Expenses[] , CsvExpense?:CsvExpense[] }) => {
+export const TableElement = ({
+  onChangeSuccess,
+  expenses,
+  CsvExpense,
+  setCsvExpense,
+}: {
+  onChangeSuccess?: () => void
+  expenses?: Expenses[]
+  CsvExpense?: CsvExpense[]
+  setCsvExpense?: Dispatch<SetStateAction<CsvExpense[]>>
+}) => {
   const supabase = createClient()
 
-
-
+  // 1. Both the table and the total read directly from `expenses` or `CsvExpense`
   const activeList = expenses ?? CsvExpense ?? []
-  console.log(activeList)
-    const totalAmount = activeList.reduce((sum, expense) => sum + Number(expense.amount), 0)
-
+  const totalAmount = activeList.reduce(
+    (sum, expense) => sum + Number(expense.amount),
+    0
+  )
 
   async function handleDelete(id: number) {
     const { error } = await supabase.from("expense").delete().eq("id", id)
@@ -70,7 +81,7 @@ export const TableElement = ( {onChangeSuccess ,expenses , CsvExpense }: { onCha
         type: "success",
         description: "The expense has been deleted.",
       })
-       if(onChangeSuccess) onChangeSuccess()
+      if (onChangeSuccess) onChangeSuccess()
     } else {
       toast.add({
         type: "error",
@@ -78,6 +89,20 @@ export const TableElement = ( {onChangeSuccess ,expenses , CsvExpense }: { onCha
         priority: "high",
       })
     }
+  }
+
+  // 2. Delete a CSV row directly in the parent's state
+  const handleCsvDelete = (id: string) => {
+    if (!setCsvExpense) return
+    setCsvExpense((prev) => prev.filter((item) => item.id !== id))
+  }
+
+  // 3. Edit a CSV row directly in the parent's state
+  const handleCsvUpdate = (updatedRow: CsvExpense) => {
+    if (!setCsvExpense) return
+    setCsvExpense((prev) =>
+      prev.map((item) => (item.id === updatedRow.id ? updatedRow : item))
+    )
   }
 
   return (
@@ -96,126 +121,103 @@ export const TableElement = ( {onChangeSuccess ,expenses , CsvExpense }: { onCha
         </TableHeader>
 
         <TableBody>
-          {expenses ?  expenses.map((expense) => {
-            return (
-              <TableRow key={expense.id} className="text-center">
-                <TableCell>{expense.title}</TableCell>
-                <TableCell>{expense.amount}</TableCell>
-                <TableCell>{expense.expense_date}</TableCell>
-                <TableCell>{expense.tag}</TableCell>
-                <TableCell>
-                  {/* 1. modal={false} disables the DropdownMenu's focus trap so the Sheet inputs can be typed in */}
-                  <DropdownMenu modal={false}>
-                    <DropdownMenuTrigger
-                      render={
-                        <Button variant="outline">
-                          <MoreHorizontal />
-                        </Button>
-                      }
-                    />
-                    {/* 2. Stop keydown and focus events from bubbling back to the DropdownMenu */}
-                    <DropdownMenuContent
-                      onKeyDown={(e) => e.stopPropagation()}
-                      onFocus={(e) => e.stopPropagation()}
-                    >
-                      <DropdownMenuGroup className="flex flex-col gap-1 p-1">
-                        <AlertDialog>
-                          <AlertDialogTrigger
-                            render={
-                              <Button variant="destructive" className="w-full">
-                                Delete
-                              </Button>
-                            }
-                          />
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the
-                                expense from our servers.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => {
-                                handleDelete(expense.id)
+          {expenses
+            ? expenses.map((expense) => {
+                return (
+                  <TableRow key={expense.id} className="text-center">
+                    <TableCell>{expense.title}</TableCell>
+                    <TableCell>{expense.amount}</TableCell>
+                    <TableCell>{expense.expense_date}</TableCell>
+                    <TableCell>{expense.tag}</TableCell>
+                    <TableCell>
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button variant="outline">
+                              <MoreHorizontal />
+                            </Button>
+                          }
+                        />
+                        <DropdownMenuContent
+                          onKeyDown={(e) => e.stopPropagation()}
+                          onFocus={(e) => e.stopPropagation()}
+                        >
+                          <DropdownMenuGroup className="flex flex-col gap-1 p-1">
+                            <AlertDialog>
+                              <AlertDialogTrigger
+                                render={
+                                  <Button variant="destructive" className="w-full">
+                                    Delete
+                                  </Button>
+                                }
+                              />
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the
+                                    expense from our servers.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      handleDelete(expense.id)
+                                    }}
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
 
+                            <EditExpense onEdit={onChangeSuccess} expense={expense} />
+                          </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })
+            : CsvExpense?.map((expense) => {
+                return (
+                  <TableRow key={expense.id} className="text-center">
+                    <TableCell>{expense.title}</TableCell>
+                    <TableCell>{expense.amount}</TableCell>
+                    <TableCell>{expense.expense_date}</TableCell>
+                    <TableCell>{expense.tag}</TableCell>
+                    <TableCell>
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button variant="outline">
+                              <MoreHorizontal />
+                            </Button>
+                          }
+                        />
+                        <DropdownMenuContent
+                          onKeyDown={(e) => e.stopPropagation()}
+                          onFocus={(e) => e.stopPropagation()}
+                        >
+                          {/* ✅ Moved Delete and EditCsv inside DropdownMenuGroup */}
+                          <DropdownMenuGroup className="flex flex-col gap-1 p-1">
+                            <Button
+                              variant="destructive"
+                              onClick={() => handleCsvDelete(expense.id)}
+                              className="w-full"
+                            >
+                              Delete
+                            </Button>
 
-                              }}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-
-                        <EditExpense onEdit={onChangeSuccess} expenseParam={expense} />
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            )
-          }) : CsvExpense?.map((expense) => {
-
-              return (
-                <TableRow key={expense.id} className="text-center">
-                  <TableCell>{expense.title}</TableCell>
-                  <TableCell>{expense.amount}</TableCell>
-                  <TableCell>{expense.expense_date}</TableCell>
-                  <TableCell>{expense.tag}</TableCell>
-                  <TableCell>
-                    {/* 1. modal={false} disables the DropdownMenu's focus trap so the Sheet inputs can be typed in */}
-                    <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button variant="outline">
-                            <MoreHorizontal />
-                          </Button>
-                        }
-                      />
-                      {/* 2. Stop keydown and focus events from bubbling back to the DropdownMenu */}
-                      <DropdownMenuContent
-                        onKeyDown={(e) => e.stopPropagation()}
-                        onFocus={(e) => e.stopPropagation()}
-                      >
-                        <DropdownMenuGroup className="flex flex-col gap-1 p-1">
-                          <AlertDialog>
-                            <AlertDialogTrigger
-                              render={
-                                <Button variant="destructive" className="w-full">
-                                  Delete
-                                </Button>
-                              }
-                            />
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete the
-                                  expense from our servers.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => {
-                                  handleDelete(expense.id)
-
-
-                                }}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
-                          <EditCsv  expense={expense} />
-                        </DropdownMenuGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-            )
-          })}
+                            <EditCsv expense={expense} onUpdate={handleCsvUpdate} />
+                          </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
         </TableBody>
 
         <TableFooter>

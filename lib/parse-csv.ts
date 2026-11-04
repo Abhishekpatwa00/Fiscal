@@ -1,7 +1,7 @@
 import Papa from "papaparse"
 
 export type StagedExpense = {
-  tempId: string
+  id: string
   title: string
   amount: number
   tag: string
@@ -73,7 +73,7 @@ export function parseExpenseCsv(file: File): Promise<StagedExpense[]> {
           // Only include rows with a valid positive amount
           if (!isNaN(cleanAmount) && cleanAmount > 0) {
             stagedRows.push({
-              tempId: `csv-${Date.now()}-${index}`,
+              id: `csv-${Date.now()}-${index}`,
               title: title.slice(0, 100),
               amount: cleanAmount,
               tag,
