@@ -17,6 +17,7 @@ import {
 import { FormEvent, useState } from "react"
 
 import { toast } from "../../ui/toast"
+import { Edit } from "lucide-react"
 type Expenses = {
   title: string
   amount: number
@@ -46,7 +47,6 @@ export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : 
   }
   const [expenses, setExpenses] = useState<Expenses>(initialForm)
 
-  console.log(expenses)
 
 
   const handleSubmit = async (e:FormEvent) => {
@@ -55,8 +55,7 @@ export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : 
 
     const data = Object.fromEntries(formData as FormData)
 
-    console.log(expenses.tag)
-    console.log(expense.id)
+
     const { error } = await supabase.from("expense").update({
       "title": expenses.title,
       "amount": expenses.amount,
@@ -65,14 +64,14 @@ export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : 
 
     }).eq("id" , expense.id).eq("user_id" , expense.user_id)
     if(error){
-      console.log(error.message)
+
       toast.add({
         type: "error",
         description: "The edit was unsuccessful.",
         priority: "high",
       })
     } else {
-      console.log("edit successFull")
+
       toast.add({
         type: "success",
         description: "The expense has been edited.",
@@ -84,14 +83,14 @@ export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : 
   }
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setExpenses({ ...expenses, [e.target.name]: e.target.value })
-    console.log(expenses.tag)
+
   }
 
   return (
     <>
       <Sheet>
         <SheetTrigger render={
-          <Button  variant={"outline"}>Edit</Button>
+          <Button  className={"w-8 h-8"} variant={"outline"}><Edit/></Button>
         } />
         <SheetContent>
           <SheetHeader>

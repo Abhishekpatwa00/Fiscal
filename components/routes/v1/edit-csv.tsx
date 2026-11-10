@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { Edit } from "lucide-react"
 import { FormEvent, useState } from "react"
 
 export type CsvExpense = {
@@ -58,7 +59,7 @@ export const EditCsv = ({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<Button variant="outline" className="w-full">Edit</Button>} />
+      <SheetTrigger render={<Button variant="outline" className="w-8 h-8"><Edit/></Button>} />
       <SheetContent>
         <SheetHeader>
           <SheetTitle className="text-lg">Edit Staged Expense</SheetTitle>

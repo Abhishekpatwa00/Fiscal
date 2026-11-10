@@ -6,6 +6,7 @@
 
 @theme inline {
     --font-heading: var(--font-sans);
+      --font-peace: var(--font-peace);
     --font-sans: var(--font-sans);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -128,5 +129,6 @@
     }
   html {
     @apply font-sans;
+
     }
 }

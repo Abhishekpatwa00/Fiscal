@@ -1,6 +1,8 @@
 "use client"
 
+import { useState, Dispatch, SetStateAction } from "react"
 import { EditCsv } from "./edit-csv"
+import { EditExpense } from "./edit"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,9 +34,7 @@ import {
 
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "../../ui/button"
-import { MoreHorizontal } from "lucide-react"
-import { EditExpense } from "./edit"
-import { Dispatch, SetStateAction } from "react"
+import { DeleteIcon, MoreHorizontal } from "lucide-react"
 
 type Expenses = {
   id: number
@@ -66,13 +66,38 @@ export const TableElement = ({
 }) => {
   const supabase = createClient()
 
-  // 1. Both the table and the total read directly from `expenses` or `CsvExpense`
   const activeList = expenses ?? CsvExpense ?? []
-  const totalAmount = activeList.reduce(
-    (sum, expense) => sum + Number(expense.amount),
-    0
-  )
 
+    // Helper that sorts newest-first (YYYY-MM-DD descending)
+    const sortNewestFirst = <T extends { expense_date: string }>(list: T[]) =>
+      [...list].sort((a, b) => {
+        const dateA = a.expense_date ? a.expense_date.split("T")[0] : ""
+        const dateB = b.expense_date ? b.expense_date.split("T")[0] : ""
+        return dateB.localeCompare(dateA)
+      })
+
+    const sortedList = sortNewestFirst(activeList)
+
+    const totalAmount = sortedList.reduce(
+      (sum, expense) => sum + Number(expense.amount),
+      0
+    )
+
+    // --- PAGINATION LOGIC ---
+    const [currentPage, setCurrentPage] = useState(1)
+    const rowsPerPage = 5
+    const totalPages = Math.max(1, Math.ceil(sortedList.length / rowsPerPage))
+    const safePage = Math.min(currentPage, totalPages)
+    const startIndex = (safePage - 1) * rowsPerPage
+    const endIndex = startIndex + rowsPerPage
+
+    const paginatedExpenses = expenses
+      ? sortNewestFirst(expenses).slice(startIndex, endIndex)
+      : undefined
+    const paginatedCsv = CsvExpense
+      ? sortNewestFirst(CsvExpense).slice(startIndex, endIndex)
+      : undefined
+    // ------------------------
   async function handleDelete(id: number) {
     const { error } = await supabase.from("expense").delete().eq("id", id)
 
@@ -91,13 +116,11 @@ export const TableElement = ({
     }
   }
 
-  // 2. Delete a CSV row directly in the parent's state
   const handleCsvDelete = (id: string) => {
     if (!setCsvExpense) return
     setCsvExpense((prev) => prev.filter((item) => item.id !== id))
   }
 
-  // 3. Edit a CSV row directly in the parent's state
   const handleCsvUpdate = (updatedRow: CsvExpense) => {
     if (!setCsvExpense) return
     setCsvExpense((prev) =>
@@ -106,7 +129,7 @@ export const TableElement = ({
   }
 
   return (
-    <div className="flex">
+    <div className="flex flex-col gap-4">
       <Table className="w-3xl mx-auto">
         <TableCaption>A list of all your expenses.</TableCaption>
 
@@ -122,32 +145,20 @@ export const TableElement = ({
 
         <TableBody>
           {expenses
-            ? expenses.map((expense) => {
+            ? paginatedExpenses?.map((expense) => {
                 return (
                   <TableRow key={expense.id} className="text-center">
                     <TableCell>{expense.title}</TableCell>
                     <TableCell>{expense.amount}</TableCell>
                     <TableCell>{expense.expense_date}</TableCell>
                     <TableCell>{expense.tag}</TableCell>
-                    <TableCell>
-                      <DropdownMenu modal={false}>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button variant="outline">
-                              <MoreHorizontal />
-                            </Button>
-                          }
-                        />
-                        <DropdownMenuContent
-                          onKeyDown={(e) => e.stopPropagation()}
-                          onFocus={(e) => e.stopPropagation()}
-                        >
-                          <DropdownMenuGroup className="flex flex-col gap-1 p-1">
+                    <TableCell className="flex gap-1">
+
                             <AlertDialog>
                               <AlertDialogTrigger
                                 render={
-                                  <Button variant="destructive" className="w-full">
-                                    Delete
+                                  <Button variant="destructive" className="w-8 h-8">
+                                    <DeleteIcon/>
                                   </Button>
                                 }
                               />
@@ -172,48 +183,30 @@ export const TableElement = ({
                               </AlertDialogContent>
                             </AlertDialog>
 
-                            <EditExpense onEdit={onChangeSuccess} expense={expense} />
-                          </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+
+
+                      <EditExpense onEdit={onChangeSuccess!} expense={expense} />
                     </TableCell>
                   </TableRow>
                 )
               })
-            : CsvExpense?.map((expense) => {
+            : paginatedCsv?.map((expense) => {
                 return (
                   <TableRow key={expense.id} className="text-center">
                     <TableCell>{expense.title}</TableCell>
                     <TableCell>{expense.amount}</TableCell>
                     <TableCell>{expense.expense_date}</TableCell>
                     <TableCell>{expense.tag}</TableCell>
-                    <TableCell>
-                      <DropdownMenu modal={false}>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button variant="outline">
-                              <MoreHorizontal />
-                            </Button>
-                          }
-                        />
-                        <DropdownMenuContent
-                          onKeyDown={(e) => e.stopPropagation()}
-                          onFocus={(e) => e.stopPropagation()}
-                        >
-                          {/* ✅ Moved Delete and EditCsv inside DropdownMenuGroup */}
-                          <DropdownMenuGroup className="flex flex-col gap-1 p-1">
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleCsvDelete(expense.id)}
-                              className="w-full"
-                            >
-                              Delete
-                            </Button>
+                    <TableCell className="flex gap-1">
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleCsvDelete(expense.id)}
+                        className="w-8 h-8"
+                      >
+                        <DeleteIcon/>
+                      </Button>
 
-                            <EditCsv expense={expense} onUpdate={handleCsvUpdate} />
-                          </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <EditCsv expense={expense} onUpdate={handleCsvUpdate} />
                     </TableCell>
                   </TableRow>
                 )
@@ -232,6 +225,50 @@ export const TableElement = ({
           </TableRow>
         </TableFooter>
       </Table>
+
+      {/* --- PAGINATION CONTROLS --- */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between w-3xl mx-auto px-2">
+          <span className="text-sm text-muted-foreground">
+            Page {safePage} of {totalPages} ({activeList.length} total items)
+          </span>
+
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={safePage <= 1}
+              onClick={() => setCurrentPage(safePage - 1)}
+            >
+              Previous
+            </Button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <Button
+                key={pageNum}
+                type="button"
+                variant={safePage === pageNum ? "default" : "outline"}
+                size="sm"
+                className="w-8 h-8 p-0"
+                onClick={() => setCurrentPage(pageNum)}
+              >
+                {pageNum}
+              </Button>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={safePage >= totalPages}
+              onClick={() => setCurrentPage(safePage + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

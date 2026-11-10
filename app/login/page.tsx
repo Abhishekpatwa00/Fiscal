@@ -41,7 +41,7 @@ export default function Login() {
 
   return (
     <>
-      <div>
+      <div className="flex justify-center">
         <Card className="w-md">
               <CardHeader>
                 <CardTitle>Login to your account</CardTitle>

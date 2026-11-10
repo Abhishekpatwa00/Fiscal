@@ -1,13 +1,13 @@
 "use client"
 
-
-import {AddCsv} from "@/components/routes/v1/csv"
-import {Button} from "@/components/ui/button"
+import { AddCsv } from "@/components/routes/v1/csv"
+import { Button } from "@/components/ui/button"
 import { AddExpense } from "@/components/routes/v1/add"
 import { TableElement } from "@/components/routes/v1/table"
 import { createClient } from "@/lib/supabase/client"
-import { useEffect , useState } from "react"
+import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
+import { AddStatement } from "@/components/routes/v1/statement"
 
 type Expenses = {
   id: number
@@ -18,69 +18,51 @@ type Expenses = {
   expense_date: string
 }
 
+export default function V1() {
+  const supabase = createClient()
 
+  const [expenses, setExpenses] = useState<Expenses[]>([])
+  const [userId, setUserId] = useState<string | undefined>("")
 
-
-export default function V1  () {
-  const supabase = createClient();
-
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [userId,setUserId] = useState<string | undefined>("")
-
-
-
-    async function checkUser() {
-      const { data: { user } } = await supabase.auth.getUser()
-
-
-      return user?.id
-    }
+  async function checkUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    return user?.id
+  }
 
   async function getData() {
     const user = await checkUser()
-    console.log(user)
+    setUserId(user)
+
+    if (!user) return
 
     const { data, error } = await supabase
       .from('expense')
-      .select(`
-        id,user_id,title,amount,tag,expense_date
-      `)
+      .select('id, user_id, title, amount, tag, expense_date')
       .eq('user_id', user)
+      .order("expense_date", { ascending: false })
 
-    console.log(data)
-    if (data) {
-      setExpenses(data)
+    if (!error && data) {
+      setExpenses(data) // <-- Added this so the state actually updates!
     }
-    console.log(userId)
-
-
   }
 
-  useEffect( () => {
-    getData();
+  useEffect(() => {
+    getData()
   }, [])
 
 
 
-  async function userOut () {
-    const { error } = await supabase.auth.signOut()
-    if (error) console.log(error.message)
-    return redirect("/")
-  }
-
-
   return (
-
     <>
-      <div className="flex flex-col   w-196 mx-auto gap-4">
+      <div className="flex flex-col w-196 mx-auto gap-4">
         <div className="flex justify-end gap-4 mr-4">
-          <AddCsv />
+          <AddStatement onUploadSuccess={getData} />
+          <AddCsv onUploadSuccess={getData} />
           <AddExpense onAddSuccess={getData} />
         </div>
-        <div >
-          <TableElement onChangeSuccess={getData} expenses={expenses}></TableElement>
+        <div>
+          <TableElement onChangeSuccess={getData} expenses={expenses} />
         </div>
-        <Button onClick={userOut}>Log out</Button>
       </div>
     </>
   )

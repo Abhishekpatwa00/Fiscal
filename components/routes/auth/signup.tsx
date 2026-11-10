@@ -72,7 +72,7 @@ export const SignUp = () => {
   }
   return (
     <>
-      <div>
+      <div className="flex justify-center">
         <Card className="w-md">
               <CardHeader>
                 <CardTitle>Create your account</CardTitle>
