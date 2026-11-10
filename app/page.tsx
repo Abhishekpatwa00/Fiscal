@@ -1,7 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { V1 } from "./main/v1"
-import { redirect } from "next/navigation"
-import { GetUser } from "@/components/routes/auth/getUser";
+
 import Link from "next/link";
 
 

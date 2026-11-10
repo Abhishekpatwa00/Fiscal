@@ -19,7 +19,7 @@ import { FormEvent, useState } from "react"
 import { toast } from "../../ui/toast"
 type Expenses = {
   title: string
-  amount: number
+  amount: number | string
   tag: string
   expense_date: string
 }
@@ -31,7 +31,7 @@ export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
 
   const initialForm = {
     title: "",
-    amount: "",
+    amount: 0,
     tag: "",
     expense_date: "",
   }

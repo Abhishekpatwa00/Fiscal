@@ -25,20 +25,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "../../ui/button"
-import { DeleteIcon, MoreHorizontal } from "lucide-react"
+import { DeleteIcon } from "lucide-react"
 
-type Expenses = {
-  id: number
-  user_id: string
+export type Expenses = {
+  id: number | string
+  user_id?: string
   title: string
   amount: number
   tag: string
@@ -56,7 +50,7 @@ export type CsvExpense = {
 export const TableElement = ({
   onChangeSuccess,
   expenses,
-  CsvExpense,
+  CsvExpense: csvExpenses,
   setCsvExpense,
 }: {
   onChangeSuccess?: () => void
@@ -66,39 +60,40 @@ export const TableElement = ({
 }) => {
   const supabase = createClient()
 
-  const activeList = expenses ?? CsvExpense ?? []
+  const activeList: (Expenses | CsvExpense)[] = expenses ?? csvExpenses ?? []
 
-    // Helper that sorts newest-first (YYYY-MM-DD descending)
-    const sortNewestFirst = <T extends { expense_date: string }>(list: T[]) =>
-      [...list].sort((a, b) => {
-        const dateA = a.expense_date ? a.expense_date.split("T")[0] : ""
-        const dateB = b.expense_date ? b.expense_date.split("T")[0] : ""
-        return dateB.localeCompare(dateA)
-      })
+  // Helper that sorts newest-first (YYYY-MM-DD descending)
+  const sortNewestFirst = <T extends { expense_date: string }>(list: T[]): T[] =>
+    [...list].sort((a, b) => {
+      const dateA = a.expense_date ? a.expense_date.split("T")[0] : ""
+      const dateB = b.expense_date ? b.expense_date.split("T")[0] : ""
+      return dateB.localeCompare(dateA)
+    })
 
-    const sortedList = sortNewestFirst(activeList)
+  const sortedList = sortNewestFirst(activeList)
 
-    const totalAmount = sortedList.reduce(
-      (sum, expense) => sum + Number(expense.amount),
-      0
-    )
+  const totalAmount = sortedList.reduce(
+    (sum, expense) => sum + Number(expense.amount),
+    0
+  )
 
-    // --- PAGINATION LOGIC ---
-    const [currentPage, setCurrentPage] = useState(1)
-    const rowsPerPage = 5
-    const totalPages = Math.max(1, Math.ceil(sortedList.length / rowsPerPage))
-    const safePage = Math.min(currentPage, totalPages)
-    const startIndex = (safePage - 1) * rowsPerPage
-    const endIndex = startIndex + rowsPerPage
+  // --- PAGINATION LOGIC ---
+  const [currentPage, setCurrentPage] = useState(1)
+  const rowsPerPage = 5
+  const totalPages = Math.max(1, Math.ceil(sortedList.length / rowsPerPage))
+  const safePage = Math.min(currentPage, totalPages)
+  const startIndex = (safePage - 1) * rowsPerPage
+  const endIndex = startIndex + rowsPerPage
 
-    const paginatedExpenses = expenses
-      ? sortNewestFirst(expenses).slice(startIndex, endIndex)
-      : undefined
-    const paginatedCsv = CsvExpense
-      ? sortNewestFirst(CsvExpense).slice(startIndex, endIndex)
-      : undefined
-    // ------------------------
-  async function handleDelete(id: number) {
+  const paginatedExpenses = expenses
+    ? sortNewestFirst(expenses).slice(startIndex, endIndex)
+    : undefined
+  const paginatedCsv = csvExpenses
+    ? sortNewestFirst(csvExpenses).slice(startIndex, endIndex)
+    : undefined
+  // ------------------------
+
+  async function handleDelete(id: string | number) {
     const { error } = await supabase.from("expense").delete().eq("id", id)
 
     if (!error) {
@@ -116,7 +111,7 @@ export const TableElement = ({
     }
   }
 
-  const handleCsvDelete = (id: string) => {
+  const handleCsvDelete = (id: string | number) => {
     if (!setCsvExpense) return
     setCsvExpense((prev) => prev.filter((item) => item.id !== id))
   }
@@ -129,106 +124,119 @@ export const TableElement = ({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <Table className="w-3xl mx-auto">
-        <TableCaption>A list of all your expenses.</TableCaption>
+    <div className="flex flex-col gap-4 w-full">
+      <div className="w-full overflow-x-auto">
+        <Table className="w-full min-w-[600px] max-w-3xl mx-auto">
+          <TableCaption>A list of all your expenses.</TableCaption>
 
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-48 text-center">Title</TableHead>
-            <TableHead className="w-48 text-center">Amount</TableHead>
-            <TableHead className="w-48 text-center">Expense Date</TableHead>
-            <TableHead className="w-48 text-center">Tags</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-48 text-center">Title</TableHead>
+              <TableHead className="w-48 text-center">Amount</TableHead>
+              <TableHead className="w-48 text-center">Expense Date</TableHead>
+              <TableHead className="w-48 text-center">Tags</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
 
-        <TableBody>
-          {expenses
-            ? paginatedExpenses?.map((expense) => {
-                return (
-                  <TableRow key={expense.id} className="text-center">
-                    <TableCell>{expense.title}</TableCell>
-                    <TableCell>{expense.amount}</TableCell>
-                    <TableCell>{expense.expense_date}</TableCell>
-                    <TableCell>{expense.tag}</TableCell>
-                    <TableCell className="flex gap-1">
+          <TableBody>
+            {expenses
+              ? paginatedExpenses?.map((expense) => {
+                  return (
+                    <TableRow key={expense.id} className="text-center">
+                      <TableCell>{expense.title}</TableCell>
+                      <TableCell>{expense.amount}</TableCell>
+                      <TableCell>{expense.expense_date}</TableCell>
+                      <TableCell>{expense.tag}</TableCell>
+                      <TableCell className="flex justify-center gap-1">
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            render={
+                              <Button variant="destructive" className="w-8 h-8">
+                                <DeleteIcon />
+                              </Button>
+                            }
+                          />
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you absolutely sure?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will
+                                permanently delete the expense from our servers.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  handleDelete(expense.id)
+                                }}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
 
-                            <AlertDialog>
-                              <AlertDialogTrigger
-                                render={
-                                  <Button variant="destructive" className="w-8 h-8">
-                                    <DeleteIcon/>
-                                  </Button>
-                                }
-                              />
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the
-                                    expense from our servers.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => {
-                                      handleDelete(expense.id)
-                                    }}
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                        <EditExpense
+                          onEdit={onChangeSuccess ?? (() => {})}
+                          expense={
+                            {
+                              ...expense,
+                              id: Number(expense.id),
+                              user_id: expense.user_id ?? "",
+                            } as any
+                          }
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              : paginatedCsv?.map((expense) => {
+                  return (
+                    <TableRow key={expense.id} className="text-center">
+                      <TableCell>{expense.title}</TableCell>
+                      <TableCell>{expense.amount}</TableCell>
+                      <TableCell>{expense.expense_date}</TableCell>
+                      <TableCell>{expense.tag}</TableCell>
+                      <TableCell className="flex justify-center gap-1">
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleCsvDelete(expense.id)}
+                          className="w-8 h-8"
+                        >
+                          <DeleteIcon />
+                        </Button>
 
+                        <EditCsv
+                          expense={{ ...expense, id: String(expense.id) } as any}
+                          onUpdate={handleCsvUpdate as any}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+          </TableBody>
 
-
-                      <EditExpense onEdit={onChangeSuccess!} expense={expense} />
-                    </TableCell>
-                  </TableRow>
-                )
-              })
-            : paginatedCsv?.map((expense) => {
-                return (
-                  <TableRow key={expense.id} className="text-center">
-                    <TableCell>{expense.title}</TableCell>
-                    <TableCell>{expense.amount}</TableCell>
-                    <TableCell>{expense.expense_date}</TableCell>
-                    <TableCell>{expense.tag}</TableCell>
-                    <TableCell className="flex gap-1">
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleCsvDelete(expense.id)}
-                        className="w-8 h-8"
-                      >
-                        <DeleteIcon/>
-                      </Button>
-
-                      <EditCsv expense={expense} onUpdate={handleCsvUpdate} />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-        </TableBody>
-
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={1} className="text-center font-bold">
-              Total
-            </TableCell>
-            <TableCell colSpan={3}></TableCell>
-            <TableCell className="text-center font-bold">
-              {totalAmount.toFixed(2)}
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={1} className="text-center font-bold">
+                Total
+              </TableCell>
+              <TableCell colSpan={3}></TableCell>
+              <TableCell className="text-center font-bold">
+                {totalAmount.toFixed(2)}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </div>
 
       {/* --- PAGINATION CONTROLS --- */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between w-3xl mx-auto px-2">
+        <div className="flex flex-wrap items-center justify-between w-full max-w-3xl mx-auto px-2 gap-2">
           <span className="text-sm text-muted-foreground">
             Page {safePage} of {totalPages} ({activeList.length} total items)
           </span>
@@ -244,18 +252,20 @@ export const TableElement = ({
               Previous
             </Button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-              <Button
-                key={pageNum}
-                type="button"
-                variant={safePage === pageNum ? "default" : "outline"}
-                size="sm"
-                className="w-8 h-8 p-0"
-                onClick={() => setCurrentPage(pageNum)}
-              >
-                {pageNum}
-              </Button>
-            ))}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (pageNum) => (
+                <Button
+                  key={pageNum}
+                  type="button"
+                  variant={safePage === pageNum ? "default" : "outline"}
+                  size="sm"
+                  className="w-8 h-8 p-0"
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </Button>
+              )
+            )}
 
             <Button
               type="button"
