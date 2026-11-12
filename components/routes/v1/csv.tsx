@@ -33,6 +33,7 @@ type Expenses = {
   amount: number
   tag: string
   expense_date: string
+  type:string
 }
 
 export const AddCsv = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) => {
@@ -75,10 +76,13 @@ export const AddCsv = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) =>
         amount: row.amount,
         tag: row.tag,
         expense_date: row.expense_date,
+        type:row.type
       }))
 
       setExpense(formattedRows)
+      console.log(expense)
       setShowReviewTable(true)
+
 
     } catch (err: any) {
       console.error("Parser Error:", err.message)
@@ -98,6 +102,7 @@ export const AddCsv = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) =>
 
     const payload = expense.map(({ id, ...rest }) => ({
       ...rest,
+      type: rest.type === "credit" ? "credit" : "expense",
       user_id: userId,
     }))
 
@@ -164,7 +169,7 @@ export const AddCsv = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) =>
         <AlertDialogContent className="w-7xl">
           <AlertDialogHeader>
             <div className="flex justify-between w-full">
-              <AlertDialogTitle>Review the Expenses ({expense.length})</AlertDialogTitle>
+              <AlertDialogTitle>Review the Transaction ({expense.length})</AlertDialogTitle>
               <div className="flex gap-1">
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction

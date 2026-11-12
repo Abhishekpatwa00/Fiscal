@@ -22,6 +22,7 @@ type Expenses = {
   amount: number | string
   tag: string
   expense_date: string
+  type:string
 }
 
 
@@ -34,6 +35,7 @@ export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
     amount: 0,
     tag: "",
     expense_date: "",
+    type:"expense"
   }
   const [expense, setExpense] = useState<Expenses>(initialForm)
   async function checkUser() {
@@ -60,7 +62,8 @@ export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
       title: data.title,
       amount: data.amount,
       expense_date: data.expense_date,
-      tag:data.tag
+      tag: data.tag,
+        type:data.type
     })
     if (error) console.log(error)
     if (!error) {
@@ -105,6 +108,44 @@ export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
           <form onSubmit={handleSubmit}>
             <div className=" h-[80dvh] flex flex-col  flex-1 auto-rows-min">
               <div className="grid flex-1 auto-rows-min gap-6 px-4 ">
+                <Label>Transaction Type</Label>
+                            <div className="grid grid-cols-2 gap-3">
+                              <label
+                                className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
+                                  expense.type === "expense"
+                                    ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-400"
+                                    : "border-input hover:bg-accent"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="type"
+                                  value="expense"
+                                  checked={expense.type === "expense"}
+                                  onChange={handleChange}
+                                  className="accent-red-500"
+                                />
+                                Expense (Debit)
+                              </label>
+
+                              <label
+                                className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
+                                  expense.type === "credit"
+                                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                    : "border-input hover:bg-accent"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="type"
+                                  value="credit"
+                                  checked={expense.type === "credit"}
+                                  onChange={handleChange}
+                                  className="accent-emerald-500"
+                                />
+                                Credit (Income)
+                              </label>
+                            </div>
 
                   <div className="grid gap-3">
                     <Label htmlFor="title">Title</Label>
@@ -112,7 +153,7 @@ export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
                   </div>
                   <div className="grid gap-3">
                     <Label htmlFor="amount">Amount</Label>
-                    <Input onChange={handleChange} id="amount" required type="number" name="amount" value={expense.amount} step="0.01" min="0"  placeholder="0.00" />
+                    <Input onChange={handleChange} id="amount" required type="number" name="amount" value={expense.amount === 0 ? "" : expense.amount} step="0.01" min="0"  placeholder="0.00" />
                   </div>
                   <div className="grid gap-3">
                     <Label htmlFor="expenseDate">Expense Date</Label>

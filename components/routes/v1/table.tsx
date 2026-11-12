@@ -37,6 +37,7 @@ export type Expenses = {
   amount: number
   tag: string
   expense_date: string
+  type:string
 }
 
 export type CsvExpense = {
@@ -45,6 +46,7 @@ export type CsvExpense = {
   amount: number
   tag: string
   expense_date: string
+   type:string
 }
 
 export const TableElement = ({
@@ -52,11 +54,13 @@ export const TableElement = ({
   expenses,
   CsvExpense: csvExpenses,
   setCsvExpense,
+  type
 }: {
   onChangeSuccess?: () => void
   expenses?: Expenses[]
   CsvExpense?: CsvExpense[]
-  setCsvExpense?: Dispatch<SetStateAction<CsvExpense[]>>
+    setCsvExpense?: Dispatch<SetStateAction<CsvExpense[]>>,
+  type?:string
 }) => {
   const supabase = createClient()
 
@@ -127,13 +131,13 @@ export const TableElement = ({
     <div className="flex flex-col gap-4 w-full">
       <div className="w-full overflow-x-auto">
         <Table className="w-full min-w-[600px] max-w-3xl mx-auto">
-          <TableCaption>A list of all your expenses.</TableCaption>
+          <TableCaption>A list of all your {!csvExpenses ? type == "credit" ? "credit" : "expense" : "transactions" }.</TableCaption>
 
           <TableHeader>
             <TableRow>
               <TableHead className="w-48 text-center">Title</TableHead>
               <TableHead className="w-48 text-center">Amount</TableHead>
-              <TableHead className="w-48 text-center">Expense Date</TableHead>
+              <TableHead className="w-48 text-center">Date</TableHead>
               <TableHead className="w-48 text-center">Tags</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
@@ -197,7 +201,7 @@ export const TableElement = ({
               : paginatedCsv?.map((expense) => {
                   return (
                     <TableRow key={expense.id} className="text-center">
-                      <TableCell>{expense.title}</TableCell>
+                      <TableCell className="flex items-center gap-2 justify-center">{expense.title} {expense.type =="credit" ? <div className="w-3 h-3 rounded-full bg-green-500"></div> : <div className="w-3 h-3 rounded-full bg-red-500"></div>}</TableCell>
                       <TableCell>{expense.amount}</TableCell>
                       <TableCell>{expense.expense_date}</TableCell>
                       <TableCell>{expense.tag}</TableCell>

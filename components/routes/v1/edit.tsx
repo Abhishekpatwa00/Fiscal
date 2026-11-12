@@ -23,6 +23,7 @@ type Expenses = {
   amount: number
   tag: string
   expense_date: string
+  type:string
 }
 
 type expParam = {
@@ -32,6 +33,7 @@ type expParam = {
   amount: number
   tag: string
   expense_date: string
+  type:string
 }
 
 
@@ -44,6 +46,7 @@ export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : 
     amount: expense.amount,
     tag: expense.tag,
     expense_date: expense.expense_date,
+    type:expense.type
   }
   const [expenses, setExpenses] = useState<Expenses>(initialForm)
 
@@ -60,7 +63,8 @@ export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : 
       "title": expenses.title,
       "amount": expenses.amount,
       "tag": expenses.tag,
-      "expense_date" : expenses.expense_date
+      "expense_date": expenses.expense_date,
+      "type": expenses.type
 
     }).eq("id" , expense.id).eq("user_id" , expense.user_id)
     if(error){
@@ -103,7 +107,46 @@ export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : 
             <div className=" h-[80dvh] flex flex-col  flex-1 auto-rows-min">
               <div className="grid flex-1 auto-rows-min gap-6 px-4 ">
 
-                  <div className="grid gap-3">
+                <div className="grid gap-3">
+                  <Label>Transaction Type</Label>
+                              <div className="grid grid-cols-2 gap-3">
+                                <label
+                                  className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
+                                    expenses.type === "expenses"
+                                      ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-400"
+                                      : "border-input hover:bg-accent"
+                                  }`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="type"
+                                    value="expense"
+                                    checked={expenses.type === "expense"}
+                                    onChange={handleChange}
+                                    className="accent-red-500"
+                                  />
+                                  Expense (Debit)
+                                </label>
+
+                                <label
+                                  className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
+                                    expenses.type === "credit"
+                                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                      : "border-input hover:bg-accent"
+                                  }`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="type"
+                                    value="credit"
+                                    checked={expenses.type === "credit"}
+                                    onChange={handleChange}
+                                    className="accent-emerald-500"
+                                  />
+                                  Credit (Income)
+                                </label>
+                              </div>
+
                     <Label htmlFor="title">Title</Label>
                     <Input onChange={handleChange} id="title" placeholder="Title" name="title" value={expenses.title} required  />
                   </div>

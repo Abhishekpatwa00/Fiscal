@@ -5,12 +5,13 @@ export type StagedExpense = {
   title: string
   amount: number
   tag: string
-  expense_date: string
+  expense_date: string,
+  type: string
 }
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 const MAX_ROWS = 500
-const REQUIRED_HEADERS = ["title", "amount", "tag", "expense_date"]
+const REQUIRED_HEADERS = ["title", "amount", "tag", "expense_date" , "type"]
 
 export function parseExpenseCsv(file: File): Promise<StagedExpense[]> {
   return new Promise((resolve, reject) => {
@@ -70,6 +71,8 @@ export function parseExpenseCsv(file: File): Promise<StagedExpense[]> {
             ? parsedDate.toISOString().split("T")[0]
             : new Date().toISOString().split("T")[0]
 
+          const rawType = String(rawRow.type?? "").trim().toLowerCase()
+                    const validType = rawType === "credit" ? "credit" : "expense"
           // Only include rows with a valid positive amount
           if (!isNaN(cleanAmount) && cleanAmount > 0) {
             stagedRows.push({
@@ -78,6 +81,7 @@ export function parseExpenseCsv(file: File): Promise<StagedExpense[]> {
               amount: cleanAmount,
               tag,
               expense_date: validDate,
+              type:validType
             })
           }
         })

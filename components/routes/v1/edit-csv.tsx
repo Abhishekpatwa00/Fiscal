@@ -21,7 +21,8 @@ export type CsvExpense = {
   title: string
   amount: number
   tag: string
-  expense_date: string
+  expense_date: string,
+  type:string
 }
 
 export const EditCsv = ({
@@ -38,6 +39,7 @@ export const EditCsv = ({
     amount: expense.amount,
     tag: expense.tag,
     expense_date: expense.expense_date,
+    type:expense.type
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +74,50 @@ export const EditCsv = ({
           <div className="h-[80dvh] flex flex-col flex-1 auto-rows-min">
             <div className="grid flex-1 auto-rows-min gap-6 px-4">
               <div className="grid gap-3">
+
+                <Label>Transaction Type</Label>
+                            <div className="grid grid-cols-2 gap-3">
+                              <label
+                                className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
+                                  formData.type === "expense"
+                                    ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-400"
+                                    : "border-input hover:bg-accent"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="type"
+                                  value="expense"
+                                  checked={formData.type === "expense"}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, type: e.target.value })
+                                  }
+                                  className="accent-red-500"
+                                />
+                                Expense (Debit)
+                              </label>
+
+                              <label
+                                className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
+                                  formData.type === "credit"
+                                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                    : "border-input hover:bg-accent"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="type"
+                                  value="credit"
+                                  checked={formData.type === "credit"}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, type: e.target.value })
+                                  }
+                                  className="accent-emerald-500"
+                                />
+                                Credit (Income)
+                              </label>
+                            </div>
+
                 <Label htmlFor="title">Title</Label>
                 <Input
                   onChange={handleChange}

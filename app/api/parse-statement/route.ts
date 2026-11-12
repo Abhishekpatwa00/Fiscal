@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
     }
 
-    // Convert PDF/File to text or base64 data URL
+    // Convert PDF/Image file to base64 data URL
     const arrayBuffer = await file.arrayBuffer()
     const base64Data = Buffer.from(arrayBuffer).toString("base64")
     const dataUrl = `data:${file.type || "application/pdf"};base64,${base64Data}`
@@ -36,20 +36,33 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `You are a financial parsing assistant. Extract all debit/expense transactions from the provided bank statement file.
-          Ignore credits, deposits, or incoming transfers.
-          Return a valid JSON object containing an array named "rows". Each object in the array must have:
-          - "title" (string, cleaned readable merchant name)
-          - "amount" (number)
-          - "tag" (string, 1-2 word category like food, utilities, transport, shopping)
-          - "expense_date" (string formatted strictly as YYYY-MM-DD)`,
+          content: `You are a financial data extraction assistant. Extract all transactions (both debits/expenses and credits/income) from this bank statement and return ONLY a valid JSON object matching this exact schema:
+{
+  "rows": [
+    {
+      "title": "String (clean merchant or person name)",
+      "amount": 0.00,
+      "tag": "String (concise lowercase category)",
+      "expense_date": "YYYY-MM-DD",
+      "type": "expense" | "credit"
+    }
+  ]
+}
+
+Rules:
+1. Clean messy UPI/bank strings (e.g., "UPI/SWIGGY/839201...") into short, human-readable merchant or person names (e.g., "Swiggy").
+2. Set "type" strictly to "expense" for money spent/debited/withdrawn, or "credit" for money received/deposited/refunded.
+3. Keep "amount" as a positive number (float or integer, no currency symbols).
+4. Assign a concise lowercase "tag" (e.g., "food", "bills", "transport", "shopping", "groceries", "income", "allowance", "refund", "transfer").
+5. Format "expense_date" strictly as YYYY-MM-DD.
+6. Ignore opening/closing balance summary lines.`,
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Extract the expenses from this bank statement into the requested JSON format.",
+              text: "Extract all transactions (both expenses and credits) from this bank statement into the requested JSON format under the 'rows' key.",
             },
             {
               type: "image_url",
@@ -61,9 +74,32 @@ export async function POST(req: NextRequest) {
       temperature: 0.1,
     })
 
-    const content = completion.choices[0]?.message?.content || "{ \"rows\": [] }"
+    const content = completion.choices[0]?.message?.content || '{ "rows": [] }'
     const parsedData = JSON.parse(content)
-    const rows = parsedData.rows || parsedData
+    const rawRows = Array.isArray(parsedData.rows)
+      ? parsedData.rows
+      : Array.isArray(parsedData)
+      ? parsedData
+      : []
+
+    // Sanitize each row on the server so the frontend always receives strict types
+    const rows = rawRows
+      .map((row: any, index: number) => ({
+        id: `stmt-${Date.now()}-${index}`,
+        title: String(row.title || "Untitled Transaction").trim(),
+        amount: Math.abs(Number(row.amount) || 0),
+        tag: String(row.tag || "other").trim().toLowerCase(),
+        expense_date: String(
+          row.expense_date || new Date().toISOString().split("T")[0]
+        ).split("T")[0],
+        type:
+          String(row.type || "")
+            .trim()
+            .toLowerCase() === "credit"
+            ? "credit"
+            : "expense",
+      }))
+      .filter((row: any) => row.amount > 0)
 
     return NextResponse.json({ rows })
   } catch (error: any) {

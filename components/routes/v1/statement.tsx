@@ -32,6 +32,7 @@ type Expenses = {
   amount: number
   tag: string
   expense_date: string
+  type:string
 }
 
 export const AddStatement = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) => {
@@ -80,6 +81,7 @@ export const AddStatement = ({ onUploadSuccess }: { onUploadSuccess?: () => void
         amount: Number(row.amount) || 0,
         tag: row.tag,
         expense_date: row.expense_date,
+        type: row.type,
       }))
 
       setExpense(formattedRows)
@@ -104,6 +106,7 @@ export const AddStatement = ({ onUploadSuccess }: { onUploadSuccess?: () => void
 
     const payload = expense.map(({ id, ...rest }) => ({
       ...rest,
+
       user_id: userId,
     }))
 
@@ -129,7 +132,7 @@ export const AddStatement = ({ onUploadSuccess }: { onUploadSuccess?: () => void
           <SheetHeader>
             <SheetTitle className="text-lg">Upload Bank Statement</SheetTitle>
             <SheetDescription>
-              Upload a PDF or image of your bank statement. AI will extract and categorize your expenses.
+              Upload a PDF or image of your bank statement. AI will extract and categorize your transactions.
             </SheetDescription>
           </SheetHeader>
 
@@ -169,7 +172,7 @@ export const AddStatement = ({ onUploadSuccess }: { onUploadSuccess?: () => void
         <AlertDialogContent className="w-7xl">
           <AlertDialogHeader>
             <div className="flex justify-between w-full">
-              <AlertDialogTitle>Review Extracted Expenses ({expense.length})</AlertDialogTitle>
+              <AlertDialogTitle>Review Extracted Transactions ({expense.length})</AlertDialogTitle>
               <div className="flex gap-1">
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
