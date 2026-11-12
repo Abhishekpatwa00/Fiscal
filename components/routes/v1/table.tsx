@@ -54,13 +54,17 @@ export const TableElement = ({
   expenses,
   CsvExpense: csvExpenses,
   setCsvExpense,
-  type
+  type,
+
+
 }: {
   onChangeSuccess?: () => void
   expenses?: Expenses[]
   CsvExpense?: CsvExpense[]
     setCsvExpense?: Dispatch<SetStateAction<CsvExpense[]>>,
-  type?:string
+    type?: string,
+
+
 }) => {
   const supabase = createClient()
 
@@ -76,9 +80,14 @@ export const TableElement = ({
 
   const sortedList = sortNewestFirst(activeList)
 
+
+
   const totalAmount = sortedList.reduce(
-    (sum, expense) => sum + Number(expense.amount),
-    0
+    (sum, expense) => {
+      if (expense.type == "credit") sum += expense.amount
+      else sum -= expense.amount
+      return sum
+    },0
   )
 
   // --- PAGINATION LOGIC ---
@@ -97,6 +106,7 @@ export const TableElement = ({
     : undefined
   // ------------------------
 
+  console.log(totalAmount)
   async function handleDelete(id: string | number) {
     const { error } = await supabase.from("expense").delete().eq("id", id)
 
@@ -128,7 +138,7 @@ export const TableElement = ({
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col gap-4 w-full  ">
       <div className="w-full overflow-x-auto">
         <Table className="w-full min-w-[600px] max-w-3xl mx-auto">
           <TableCaption>A list of all your {!csvExpenses ? type == "credit" ? "credit" : "expense" : "transactions" }.</TableCaption>
@@ -148,7 +158,8 @@ export const TableElement = ({
               ? paginatedExpenses?.map((expense) => {
                   return (
                     <TableRow key={expense.id} className="text-center">
-                      <TableCell>{expense.title}</TableCell>
+                      <TableCell className="flex items-center gap-2 justify-center">{expense.title} {expense.type =="credit" ? <div className="w-3 h-3 rounded-full bg-green-500"></div> : <div className="w-3 h-3 rounded-full bg-red-500"></div>}</TableCell>
+
                       <TableCell>{expense.amount}</TableCell>
                       <TableCell>{expense.expense_date}</TableCell>
                       <TableCell>{expense.tag}</TableCell>
