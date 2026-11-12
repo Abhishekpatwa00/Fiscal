@@ -117,25 +117,30 @@ export default function V1() {
             >
               Period:
             </label>
-            <select
-              id="month-select"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors duration-200 hover:bg-accent/40 focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="all">All Time</option>
-              {availableMonths.map((month) => (
-                <option key={month} value={month}>
-                  {new Date(`${month}-01T00:00:00`).toLocaleDateString(
-                    "en-US",
-                    {
-                      month: "long",
-                      year: "numeric",
-                    }
-                  )}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                id="month-select"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                style={{ appearance: "none", WebkitAppearance: "none" }}
+                className="h-9 rounded-md border border-input bg-background py-1 pl-3 pr-10 text-sm shadow-sm transition-colors duration-200 hover:bg-accent/40 focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="all">All Time</option>
+                {availableMonths.map((month) => (
+                  <option key={month} value={month}>
+                    {new Date(`${month}-01T00:00:00`).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "long",
+                        year: "numeric",
+                      }
+                    )}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            </div>
+
           </div>
 
           {/* Action Buttons wrap cleanly on mobile */}
@@ -184,19 +189,23 @@ export default function V1() {
                 >
 
                 </label>
-                <select
-                  id="table-type"
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors duration-200 hover:bg-accent/40 focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="All">All</option>
-                  {tableType.map((month) => (
-                    <option key={month} value={month}>
-                      {month}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    id="table-type"
+                    value={selectedType}
+                    onChange={(e)=> setSelectedType(e.target.value)}
+                    style={{ appearance: "none", WebkitAppearance: "none" }}
+                    className="h-9 rounded-md border border-input bg-background py-1 pl-3 pr-10 text-sm shadow-sm transition-colors duration-200 hover:bg-accent/40 focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="All">All</option>
+                    {tableType.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
               </div>
             </div>
             {isOpen ?
