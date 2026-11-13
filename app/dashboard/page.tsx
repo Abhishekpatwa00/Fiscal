@@ -62,6 +62,7 @@ export default function V1() {
       ? expenses
       : expenses.filter((item) => item.expense_date?.startsWith(selectedMonth))
 
+
   const expenseLog = filteredTransactions.filter(
     (item) => item.type !== "credit"
   )
@@ -107,7 +108,7 @@ export default function V1() {
 
   return (
     <>
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pb-16">
+      <div className=" pt-16 flex px-4 justify-center max-w-4xl flex-col gap-6  pb-16">
         {/* Top Bar: Month Filter on Left, Action Buttons on Right (stacks on mobile) */}
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">

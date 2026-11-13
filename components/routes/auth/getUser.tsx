@@ -26,25 +26,30 @@ export const GetUser = async () => {
 
   return (
     <AuthNavWrapper>
-      {user ? (
+
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
+
+
               <Button variant="ghost" size="lg" className="rounded-full p-0 h-10 w-10">
                 <Avatar>
-                  <AvatarImage src={user.user_metadata?.avatar_url} alt="User avatar" />
+                  <AvatarImage src={user?.user_metadata?.avatar_url} alt="User avatar" />
                   <AvatarFallback>
                     <User className="h-5 w-5" />
-                  </AvatarFallback>
+                </AvatarFallback>
+
                 </Avatar>
-              </Button>
+            </Button>
+
+
             }
-          />
+            />
           <DropdownMenuContent className="w-48" align="end">
             <DropdownMenuGroup>
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem><Link href="/profile">Profile</Link></DropdownMenuItem>
+              <DropdownMenuItem><Link href="/billings">Billing</Link></DropdownMenuItem>
+              <DropdownMenuItem><Link href="/settings">Settings</Link></DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
@@ -52,16 +57,7 @@ export const GetUser = async () => {
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-      ) : (
-        <div className="flex items-center gap-2">
-          <Link href="/login">
-            <Button variant="ghost">Log in</Button>
-          </Link>
-          <Link href="/signup">
-            <Button>Get Started</Button>
-          </Link>
-        </div>
-      )}
+
     </AuthNavWrapper>
   )
 }

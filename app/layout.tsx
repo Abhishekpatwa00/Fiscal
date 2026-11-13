@@ -37,25 +37,11 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <div className="flex flex-col gap-12">
-            <div className="flex justify-between items-center mr-8">
-              <img
-                src="/dark-logo.png"
-                alt="Logo"
-                className="w-32 ml-8 -mt-5 hidden dark:block"
-              />
-              <img
-                src="/logo-transparent.png"
-                alt="Logo"
-                className="w-32 ml-8 -mt-5 dark:hidden"
-              />
-              <GetUser />
-            </div>
-            <div>
+
+
               {children}
               <Toaster />
-            </div>
-          </div>
+
         </ThemeProvider>
       </body>
     </html>
