@@ -22,6 +22,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { ChevronDown } from "lucide-react"
 
@@ -68,7 +69,9 @@ export function AppSidebar() {
   const [isCreating, setIsCreating] = useState(false)
   const [viewMode, setViewMode] = useState<"active" | "trash">("active")
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
-
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const activeNoteId = searchParams.get("id")
   const activeNotes = notes.filter((n) => !n.is_deleted)
   const trashedNotes = notes.filter((n) => n.is_deleted)
   const selectedNote = activeNotes.find((n) => n.id === selectedNoteId) || null
@@ -109,7 +112,8 @@ export function AppSidebar() {
           fetchNotes() // Revert on error
         } else {
           toast.add({ type: "success", description: "Moved to Recycle Bin." })
-        }
+    }
+    router.push(`/dashboard/notes`)
   }
 
   async function handlePermanentDelete(id : string) {
@@ -186,7 +190,9 @@ export function AppSidebar() {
             type: "success",
             description: "New note created.",
           })
-        }
+          router.push(`/dashboard/notes?id=${newNote.id}`)
+    }
+
         setIsCreating(false)
   }
 
@@ -208,8 +214,11 @@ export function AppSidebar() {
               <Link href="/dashboard/notes" className="w-full">Notes</Link>
               <Button
                 size="icon-sm"
-                onClick={handleCreateNote}
-                disabled={isCreating}
+                onClick={() => {
+                  handleCreateNote()
+
+                }}
+
                 className="gap-2 mr-1"
                 variant="ghost"
 
@@ -234,7 +243,8 @@ export function AppSidebar() {
                   activeNotes.map((note) => (
                     <div
                       key={note.id}
-                      onClick={() => setSelectedNoteId(note.id)}
+                      onClick={() => {setSelectedNoteId(note.id)
+                        router.push(`/dashboard/notes?id=${note.id}`)}}
                       className={`group flex items-center justify-between p-3 rounded-lg  cursor-pointer transition-colors ${
                         selectedNoteId === note.id
                           ? "border-primary bg-secondary"
@@ -279,7 +289,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" className="flex gap-2 justify-start" />}>
-              <Trash2/>  Thrash
+              <Trash2/>  Trash
             </DropdownMenuTrigger>
             <DropdownMenuContent side="left" className={"w-sm"}>
               <DropdownMenuGroup>

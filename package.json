@@ -13,6 +13,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
+    "@blocknote/core": "^0.57.0",
+    "@blocknote/react": "^0.57.0",
+    "@blocknote/shadcn": "^0.57.0",
     "@google/genai": "^3.0.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",

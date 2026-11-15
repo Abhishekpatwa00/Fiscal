@@ -1,7 +1,13 @@
-export default function Expenses  () {
+import { Suspense } from "react"
+
+export default function Expenses() {
   return (
-    <>
-      This is my Expenses page
-    </>
+    <Suspense>
+      <div>Hell</div>
+    </Suspense>
+
+
+
+
   )
 }
