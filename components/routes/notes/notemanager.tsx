@@ -1,11 +1,13 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/toast"
+"use client"
+
+import { useState, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Save } from "lucide-react";
-import { useEffect, useState } from "react";
-
-
+import { uploadNoteImage } from "@/lib/upload-note-image"
+import { useCreateBlockNote } from "@blocknote/react"
+import { BlockNoteView } from "@blocknote/shadcn"
+import "@blocknote/shadcn/style.css"
+import { Button } from "@/components/ui/button"
+import { ImagePlus, X, Check, Loader2 } from "lucide-react"
 
 export type NoteBlock = {
   id: string
@@ -30,47 +32,149 @@ export type Note = {
 
 
 
-export const NoteEditor = ({ note }: { note: Note }) => {
-  const [editNote , setEditNote] = useState<Note>(note)
-  const supabase = createClient();
-  async function save() {
-    const { error } = await supabase.from("notes").update({
-      "title": editNote?.title,
-      "cover_url": editNote?.cover_url,
-      "blocks": editNote?.blocks,
-    }).eq("id", editNote?.id)
-    if (error) {
-      toast.add({
-        type: "error",
-        description: "Failed to save note.",
-      })
+export function NoteEditor({ initialNote }: { initialNote: Note }) {
+  const supabase = createClient()
+
+  const [title, setTitle] = useState(initialNote.title || "")
+  const [coverUrl, setCoverUrl] = useState<string | null>(initialNote.cover_url || null)
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving">("saved")
+  const [uploadingCover, setUploadingCover] = useState(false)
+
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Initialize BlockNote editor with existing blocks from Supabase
+  const editor = useCreateBlockNote({
+    initialContent:
+      Array.isArray(initialNote.blocks) && initialNote.blocks.length > 0
+        ? initialNote.blocks
+        : undefined,
+    uploadFile: async (file: File) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not authenticated")
+      return await uploadNoteImage(file, user.id)
+    },
+  })
+
+  // Debounced Autosave (waits 700ms after you stop typing)
+  const triggerAutoSave = (updatedFields: {
+    title?: string
+    blocks?: any[]
+    cover_url?: string | null
+  }) => {
+    setSaveStatus("saving")
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      await supabase
+        .from("notes")
+        .update(updatedFields)
+        .eq("id", initialNote.id)
+      setSaveStatus("saved")
+    }, 700)
+  }
+
+  // Handle Cover Image Upload
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+      const publicUrl = await uploadNoteImage(file, user.id)
+      setCoverUrl(publicUrl)
+      await supabase
+        .from("notes")
+        .update({ cover_url: publicUrl })
+        .eq("id", initialNote.id)
+    } catch (err) {
+      console.error("Cover upload failed:", err)
+    } finally {
+      setUploadingCover(false)
     }
   }
 
-
   return (
-    <>
-
-
-      <div>
-        <Button
-          variant={"ghost"}
-          className="text-md"
-          onClick={save}
-        ><Save /></Button>
-        <div className="rounded-lg border bg-white p-6 min-h-[500px]">
-          <input
-            type="text"
-            value={editNote?.title}
-            onChange={(e) => {
-              setEditNote({ ...editNote, title: `${e.target.value}` })
-
-            }}
-            className=" bg-transparent text-5xl font-peace border-transparent focus:border-primary outline-none"
+    <div className="flex bg-white flex-col gap-4  w-full">
+      <span className="text-xs pt-4 pr-4 text-muted-foreground flex items-center self-end gap-1">
+        {saveStatus === "saving" ? (
+          <>
+            <Loader2 className="w-3 h-3 animate-spin" /> Saving...
+          </>
+        ) : (
+          <>
+            <Check className="w-3 h-3 text-emerald-500" /> Saved
+          </>
+        )}
+      </span>
+      {/* --- HEADER COVER BANNER --- */}
+      {coverUrl ? (
+        <div className="relative group w-full h-44 sm:h-56  overflow-hidden">
+          <img
+            src={coverUrl}
+            alt="Note cover"
+            className="w-full h-full object-cover"
           />
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity gap-1"
+            onClick={() => {
+              setCoverUrl(null)
+              triggerAutoSave({ cover_url: null })
+            }}
+          >
+            <X className="w-3.5 h-3.5" /> Remove Cover
+          </Button>
         </div>
-      </div>
+      ) : (
+        <div className="flex p-4 items-center  justify-between">
+          <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer px-2 py-1 rounded hover:bg-accent transition-colors">
+            <ImagePlus className="w-3.5 h-3.5" />
+            {uploadingCover ? "Uploading cover..." : "Add Cover Image"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverUpload}
+              disabled={uploadingCover}
+            />
+          </label>
 
-    </>
+
+
+        </div>
+      )}
+
+      {/* --- TITLE INPUT --- */}
+      <input
+        type="text"
+        value={title}
+        placeholder="Untitled Note"
+        onChange={(e) => {
+          const val = e.target.value
+          setTitle(val)
+          triggerAutoSave({ title: val, blocks: editor.document })
+        }}
+        className="w-full ml-4  text-2xl sm:text-7xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 px-2"
+      />
+
+      {/* --- BLOCKNOTE EDITOR CANVAS --- */}
+      <div className="min-h-[380px] max-w-[1000px]  ">
+        <BlockNoteView
+          editor={editor}
+          onChange={() => {
+            triggerAutoSave({ title, blocks: editor.document })
+          }}
+          theme="light"
+          className="text-gray-500 "
+        />
+      </div>
+    </div>
   )
 }

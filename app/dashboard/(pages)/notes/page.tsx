@@ -61,7 +61,7 @@ function NotesView() {
   }, [selectedNoteId])
 
   return (
-    <div className="w-full p-6">
+    <div className="w-full overflow-hidden">
       <div >
         {!selectedNoteId ? (
           <div className="h-[450px] flex items-center justify-center text-sm text-muted-foreground">
@@ -71,7 +71,7 @@ function NotesView() {
                       Loading your note...
                     </div>
                   ) : (
-                    <NoteEditor note={note} />
+                    <NoteEditor initialNote={note} />
                   )
         )}
       </div>
