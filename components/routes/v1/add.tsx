@@ -1,5 +1,5 @@
 "use client"
-
+import {useFinance} from "@/components/context/finance-context"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,7 +29,7 @@ type Expenses = {
 
 export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
   const supabase = createClient();
-
+  const {refreshFinanceData} = useFinance()
   const initialForm = {
     title: "",
     amount: 0,
@@ -73,6 +73,7 @@ export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
           description: "The expense have been addedd."
         })
       setExpense(initialForm)
+      await refreshFinanceData()
     } else {
       toast.add({
         type: "error",

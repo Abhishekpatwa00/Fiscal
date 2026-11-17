@@ -8,6 +8,18 @@ import { BlockNoteView } from "@blocknote/shadcn"
 import "@blocknote/shadcn/style.css"
 import { Button } from "@/components/ui/button"
 import { ImagePlus, X, Check, Loader2 } from "lucide-react"
+import { useNotes } from "@/components/context/notes-context"
+import {
+  BlockNoteSchema,
+  defaultBlockSpecs,
+  filterSuggestionItems,
+} from "@blocknote/core"
+import {
+  getDefaultReactSlashMenuItems,
+  SuggestionMenuController,
+} from "@blocknote/react"
+import { PiggyBank } from "lucide-react"
+import { BudgetTrackerBlock } from "./customblocks"
 
 export type NoteBlock = {
   id: string
@@ -30,10 +42,19 @@ export type Note = {
   updated_at: string
 }
 
+const schema = BlockNoteSchema.create({
+  blockSpecs: {
+    ...defaultBlockSpecs,
+
+    budgetTracker: BudgetTrackerBlock(),
+  },
+})
+
 
 
 export function NoteEditor({ initialNote }: { initialNote: Note }) {
   const supabase = createClient()
+  const { updateNoteLocalTitle } = useNotes()
 
   const [title, setTitle] = useState(initialNote.title || "")
   const [coverUrl, setCoverUrl] = useState<string | null>(initialNote.cover_url || null)
@@ -44,6 +65,7 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
 
   // Initialize BlockNote editor with existing blocks from Supabase
   const editor = useCreateBlockNote({
+    schema,
     initialContent:
       Array.isArray(initialNote.blocks) && initialNote.blocks.length > 0
         ? initialNote.blocks
@@ -159,21 +181,48 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
         onChange={(e) => {
           const val = e.target.value
           setTitle(val)
+          updateNoteLocalTitle(initialNote.id,val)
           triggerAutoSave({ title: val, blocks: editor.document })
         }}
         className="w-full ml-4  text-2xl sm:text-7xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 px-2"
       />
 
       {/* --- BLOCKNOTE EDITOR CANVAS --- */}
-      <div className="min-h-[380px] max-w-[1000px]  ">
+      <div className="min-h-[380px] ">
         <BlockNoteView
           editor={editor}
+          slashMenu={false}
           onChange={() => {
             triggerAutoSave({ title, blocks: editor.document })
           }}
           theme="light"
-          className="text-gray-500 "
-        />
+        >
+          <SuggestionMenuController
+            triggerCharacter="/"
+            getItems={async (query) =>
+              filterSuggestionItems(
+                [
+                  ...getDefaultReactSlashMenuItems(editor),
+                  {
+                    title: "Budget Tracker",
+                    subtext: "Track live category spending against a limit",
+                    aliases: ["budget", "limit", "tracker"],
+                    group: "Finance",
+                    icon: <PiggyBank className="w-4 h-4" />,
+                    onItemClick: () => {
+                      editor.insertBlocks(
+                        [{ type: "budgetTracker" }],
+                        editor.getTextCursorPosition().block,
+                        "after"
+                      )
+                    },
+                  },
+                ],
+                query
+              )
+            }
+          />
+        </BlockNoteView>
       </div>
     </div>
   )
