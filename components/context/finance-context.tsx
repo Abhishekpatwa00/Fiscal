@@ -11,16 +11,11 @@ type Expense = {
   type:string
 }
 
-type Credit = {
-  id: string
-  amount: number
-  source: string
-  date: string
-}
+
 
 type FinanceContextType = {
   expenses: Expense[]
-  credits: Credit[]
+
   totalExpenses: number
   totalCredits: number
   netBalance: number
@@ -33,36 +28,60 @@ const FinanceContext = createContext<FinanceContextType | undefined>(undefined)
 export function FinanceProvider({ children }: { children: ReactNode }) {
 
   const supabase = createClient()
-    const [expenses, setExpenses] = useState<Expense[]>([])
-    const [credits, setCredits] = useState<Credit[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>([])
+  const [credits, setCredits] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
 
   async function fetchFinanceData() {
     setLoading(true)
-    const [expenseRes, creditRes] = await Promise.all([
-          supabase.from("expenses").select("*"),
-          supabase.from("credits").select("*"),
-        ])
 
-        if (expenseRes.data) setExpenses(expenseRes.data)
-        if (creditRes.data) setCredits(creditRes.data)
-        setLoading(false)
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    console.log("1. Auth user:", user?.id, "Auth error:", authError)
+
+    if (authError || !user) {
+      setLoading(false)
+      return
+    }
+
+    const { data, error } = await supabase
+      .from("expense")
+      .select("*")
+      .eq("user_id", user.id)
+
+    console.log("2. Supabase response -> data:", data, "error:", error)
+
+    if (data) setExpenses(data)
+    setLoading(false)
   }
 
   useEffect(() => {
     fetchFinanceData()
-
   }, [])
+  const totalExpenses = expenses.reduce((acc, curr) => {
+    if (curr.type === "expense") {
+      return acc + Number(curr.amount || 0)
+    }
+    return acc
+  }, 0)
 
-  const totalExpenses = expenses.reduce((acc, curr) => acc + Number(curr.amount || 0), 0)
-    const totalCredits = credits.reduce((acc, curr) => acc + Number(curr.amount || 0), 0)
+  const totalCredits = expenses.reduce((acc, curr) => {
+    if (curr.type === "credit") {
+      return acc + Number(curr.amount || 0)
+    }
+    return acc
+  }, 0)
+
   const netBalance = totalCredits - totalExpenses
 
   return (
     <FinanceContext.Provider
           value={{
             expenses,
-            credits,
+
             totalExpenses,
             totalCredits,
             netBalance,

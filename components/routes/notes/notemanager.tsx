@@ -1,5 +1,5 @@
 "use client"
-
+import { PlusCircle } from "lucide-react"
 import { useState, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { uploadNoteImage } from "@/lib/upload-note-image"
@@ -19,7 +19,7 @@ import {
   SuggestionMenuController,
 } from "@blocknote/react"
 import { PiggyBank } from "lucide-react"
-import { BudgetTrackerBlock } from "./customblocks"
+import { BudgetTrackerBlock , QuickAddBlock} from "./customblocks"
 
 export type NoteBlock = {
   id: string
@@ -47,6 +47,7 @@ const schema = BlockNoteSchema.create({
     ...defaultBlockSpecs,
 
     budgetTracker: BudgetTrackerBlock(),
+    quickAdd: QuickAddBlock(),
   },
 })
 
@@ -203,6 +204,20 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
               filterSuggestionItems(
                 [
                   ...getDefaultReactSlashMenuItems(editor),
+                  {
+                              title: "Add Transaction",
+                              subtext: "Log an expense or credit directly to Fiscal",
+                              aliases: ["add", "expense", "credit", "log"],
+                              group: "Finance",
+                              icon: <PlusCircle className="w-4 h-4" />,
+                              onItemClick: () => {
+                                editor.insertBlocks(
+                                  [{ type: "quickAdd" }],
+                                  editor.getTextCursorPosition().block,
+                                  "after"
+                                )
+                              },
+                            },
                   {
                     title: "Budget Tracker",
                     subtext: "Track live category spending against a limit",
