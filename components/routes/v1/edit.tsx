@@ -112,7 +112,7 @@ export const EditExpense = ({ onEdit , expense }: { onEdit:()=>void , expense : 
                               <div className="grid grid-cols-2 gap-3">
                                 <label
                                   className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
-                                    expenses.type === "expenses"
+                                    expenses.type === "expense"
                                       ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-400"
                                       : "border-input hover:bg-accent"
                                   }`}

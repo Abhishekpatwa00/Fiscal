@@ -138,18 +138,18 @@ export const TableElement = ({
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full  ">
+    <div className="flex flex-col gap-4  w-full  ">
       <div className="w-full overflow-x-auto">
-        <Table className="w-full min-w-[600px] max-w-3xl mx-auto">
+        <Table className="w-full min-w-[640px] max-w-3xl mx-auto">
           <TableCaption>A list of all your {!csvExpenses ? type == "credit" ? "credit" : "expense" : "transactions" }.</TableCaption>
 
           <TableHeader>
             <TableRow>
-              <TableHead className="w-48 text-center">Title</TableHead>
-              <TableHead className="w-48 text-center">Amount</TableHead>
-              <TableHead className="w-48 text-center">Date</TableHead>
-              <TableHead className="w-48 text-center">Tags</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
+              <TableHead className="w-56 text-center">Title</TableHead>
+              <TableHead className="w-40 text-center">Amount</TableHead>
+              <TableHead className="w-40 text-center">Date</TableHead>
+              <TableHead className="w-40 text-center">Tags</TableHead>
+              <TableHead className="text-center w-40">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -157,10 +157,18 @@ export const TableElement = ({
             {expenses
               ? paginatedExpenses?.map((expense) => {
                   return (
-                    <TableRow key={expense.id} className="text-center">
-                      <TableCell className="flex items-center gap-2 justify-center">{expense.title} {expense.type =="credit" ? <div className="w-3 h-3 rounded-full bg-green-500"></div> : <div className="w-3 h-3 rounded-full bg-red-500"></div>}</TableCell>
-
-                      <TableCell>{expense.amount}</TableCell>
+                    <TableRow key={expense.id} className="text-center ">
+                      <TableCell className="align-middle">
+                          <div className="flex items-center justify-center gap-2">
+                            <span>{expense.title}</span>
+                            <span
+                              className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                                expense.type === "credit" ? "bg-green-500" : "bg-red-500"
+                              }`}
+                            />
+                          </div>
+                        </TableCell>
+                      <TableCell  >{expense.amount}</TableCell>
                       <TableCell>{expense.expense_date}</TableCell>
                       <TableCell>{expense.tag}</TableCell>
                       <TableCell className="flex justify-center gap-1">

@@ -74,7 +74,7 @@ function BudgetTrackerView({
       <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden">
         <div
           className={`h-full transition-all duration-300 ${
-            isGoalReached ? "bg-emerald-500" : "bg-red-500"
+            isGoalReached ? "bg-emerald-500" : "bg-foreground"
           }`}
           style={{ width: `${percentage}%` }}
         />
@@ -361,6 +361,103 @@ export const QuickAddBlock = createReactBlockSpec(
   {
     render: (props) => (
       <QuickAddView block={props.block} editor={props.editor} />
+    ),
+  }
+)
+
+
+/// This is the Tag ledger
+
+import { TableElement , type Expenses } from "../v1/table"
+import { Table2 } from "lucide-react"
+
+function TagLedgerView({ block, editor }: { block: any; editor: any }) {
+  const { expenses, refreshFinanceData } = useFinance()
+  const { tag, filterType } = block.props
+
+  const filteredExpenses = expenses.filter((item: any) => {
+    const matchesTag =
+      !tag.trim() ||
+      String(item.tag ?? "")
+        .toLowerCase()
+        .trim()
+        .includes(tag.toLowerCase().trim())
+
+    const matchesType =
+      filterType === "all" || item.type === filterType
+
+    return matchesTag && matchesType
+  })
+
+  return (
+    <div
+      contentEditable={false}
+      onMouseDown={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      className="my-3 p-4 rounded-xl border  shadow-xs flex flex-col gap-4 select-none"
+    >
+      {/* Header Controls: Tag Filter & Type Toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b">
+        <div className="flex items-center gap-2">
+          <Table2 className="w-4 h-4 text-primary shrink-0" />
+          <input
+            type="text"
+            value={tag}
+            placeholder="Filter by tag (leave empty for all)..."
+            onChange={(e) =>
+              editor.updateBlock(block, {
+                props: { tag: e.target.value },
+              })
+            }
+            className="font-semibold text-sm bg-transparent border-b border-transparent focus:border-primary outline-none w-56"
+          />
+        </div>
+
+        <div className="flex rounded-md border bg-secondary/40 p-0.5 text-xs">
+          {(["all", "expense", "credit"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() =>
+                editor.updateBlock(block, {
+                  props: { filterType: mode },
+                })
+              }
+              className={`px-2.5 py-1 rounded-sm capitalize font-medium transition-colors ${
+                filterType === mode
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Your Existing Table Component */}
+      <TableElement
+        expenses={filteredExpenses as Expenses[]}
+        onChangeSuccess={refreshFinanceData}
+        type={filterType === "credit" ? "credit" : "expense"}
+
+      />
+    </div>
+  )
+}
+
+export const TagLedgerBlock = createReactBlockSpec(
+  {
+    type: "tagLedger",
+    propSchema: {
+      tag: { default: "" },
+      filterType: { default: "all" },
+    },
+    content: "none",
+  },
+  {
+    render: (props) => (
+      <TagLedgerView block={props.block} editor={props.editor} />
     ),
   }
 )

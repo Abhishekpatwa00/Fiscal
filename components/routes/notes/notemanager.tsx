@@ -1,4 +1,5 @@
 "use client"
+import { useTheme } from "next-themes"
 import { PlusCircle } from "lucide-react"
 import { useState, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
@@ -7,7 +8,7 @@ import { useCreateBlockNote } from "@blocknote/react"
 import { BlockNoteView } from "@blocknote/shadcn"
 import "@blocknote/shadcn/style.css"
 import { Button } from "@/components/ui/button"
-import { ImagePlus, X, Check, Loader2 } from "lucide-react"
+import { ImagePlus, X, Check, Loader2 , Table2} from "lucide-react"
 import { useNotes } from "@/components/context/notes-context"
 import {
   BlockNoteSchema,
@@ -19,7 +20,7 @@ import {
   SuggestionMenuController,
 } from "@blocknote/react"
 import { PiggyBank } from "lucide-react"
-import { BudgetTrackerBlock , QuickAddBlock} from "./customblocks"
+import { BudgetTrackerBlock , QuickAddBlock , TagLedgerBlock} from "./customblocks"
 
 export type NoteBlock = {
   id: string
@@ -48,6 +49,7 @@ const schema = BlockNoteSchema.create({
 
     budgetTracker: BudgetTrackerBlock(),
     quickAdd: QuickAddBlock(),
+    tagLedger: TagLedgerBlock(),
   },
 })
 
@@ -56,29 +58,54 @@ const schema = BlockNoteSchema.create({
 export function NoteEditor({ initialNote }: { initialNote: Note }) {
   const supabase = createClient()
   const { updateNoteLocalTitle } = useNotes()
+  const { resolvedTheme } = useTheme();
 
-  const [title, setTitle] = useState(initialNote.title || "")
+  const [title, setTitle] =  useState(initialNote.title || "")
   const [coverUrl, setCoverUrl] = useState<string | null>(initialNote.cover_url || null)
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving">("saved")
   const [uploadingCover, setUploadingCover] = useState(false)
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  //
+  const validBlockTypes = new Set(Object.keys(schema.blockSpecs))
+
+  function sanitizeBlocks(blocks: any[] | undefined): any[] | undefined {
+    if (!Array.isArray(blocks) || blocks.length === 0) return undefined
+
+    const cleaned = blocks
+      .filter((block) => {
+        if (!block?.type || !validBlockTypes.has(block.type)) {
+          console.warn("Skipped unknown block type in initialContent:", block?.type, block)
+          return false
+        }
+        return true
+      })
+      .map((block) => ({
+        ...block,
+        children: Array.isArray(block.children)
+          ? sanitizeBlocks(block.children) ?? []
+          : [],
+      }))
+
+    return cleaned.length > 0 ? cleaned : undefined
+  }
+
   // Initialize BlockNote editor with existing blocks from Supabase
   const editor = useCreateBlockNote({
     schema,
-    initialContent:
-      Array.isArray(initialNote.blocks) && initialNote.blocks.length > 0
-        ? initialNote.blocks
-        : undefined,
-    uploadFile: async (file: File) => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
-      return await uploadNoteImage(file, user.id)
+    initialContent:sanitizeBlocks(initialNote.blocks)
+    //   Array.isArray(initialNote.blocks) && initialNote.blocks.length > 0
+    //     ? initialNote.blocks
+    //     : undefined,
+    // uploadFile: async (file: File) => {
+    //   const {
+    //     data: { user },
+    //   } = await supabase.auth.getUser()
+    //   if (!user) throw new Error("Not authenticated")
+    //   return await uploadNoteImage(file, user.id)
     },
-  })
+  )
 
   // Debounced Autosave (waits 700ms after you stop typing)
   const triggerAutoSave = (updatedFields: {
@@ -122,7 +149,7 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
   }
 
   return (
-    <div className="flex bg-white flex-col gap-4  w-full">
+    <div className="flex bg-white dark:bg-background flex-col gap-4  w-full">
       <span className="text-xs pt-4 pr-4 text-muted-foreground flex items-center self-end gap-1">
         {saveStatus === "saving" ? (
           <>
@@ -189,14 +216,14 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
       />
 
       {/* --- BLOCKNOTE EDITOR CANVAS --- */}
-      <div className="min-h-[380px] ">
+      <div className="min-h-[380px]  ">
         <BlockNoteView
           editor={editor}
           slashMenu={false}
           onChange={() => {
             triggerAutoSave({ title, blocks: editor.document })
           }}
-          theme="light"
+          theme={resolvedTheme as "light" | "dark" | undefined}
         >
           <SuggestionMenuController
             triggerCharacter="/"
@@ -204,6 +231,20 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
               filterSuggestionItems(
                 [
                   ...getDefaultReactSlashMenuItems(editor),
+                  {
+                    title: "Tag Ledger",
+                    subtext: "Embed a live filtered table of expenses or credits",
+                      aliases: ["ledger", "table", "transactions", "history"],
+                      group: "Finance",
+                      icon: <Table2 className="w-4 h-4" />,
+                      onItemClick: () => {
+                        editor.insertBlocks(
+                          [{ type: "tagLedger" }],
+                          editor.getTextCursorPosition().block,
+                          "after"
+                        )
+                      },
+                  },
                   {
                               title: "Add Transaction",
                               subtext: "Log an expense or credit directly to Fiscal",
