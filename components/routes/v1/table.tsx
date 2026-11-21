@@ -140,7 +140,7 @@ export const TableElement = ({
   return (
     <div className="flex flex-col gap-4  w-full  ">
       <div className="w-full overflow-x-auto">
-        <Table className="w-full min-w-[640px] max-w-3xl mx-auto">
+        <Table className="w-full max-w-3xl mx-auto">
           <TableCaption>A list of all your {!csvExpenses ? type == "credit" ? "credit" : "expense" : "transactions" }.</TableCaption>
 
           <TableHeader>
@@ -259,7 +259,7 @@ export const TableElement = ({
 
       {/* --- PAGINATION CONTROLS --- */}
       {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between w-full max-w-3xl mx-auto px-2 gap-2">
+        <div className="flex overflow-scroll scrollbar-none flex-wrap items-center justify-between w-full max-w-3xl mx-auto px-2 gap-2">
           <span className="text-sm text-muted-foreground">
             Page {safePage} of {totalPages} ({activeList.length} total items)
           </span>

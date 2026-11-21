@@ -61,7 +61,7 @@ function NotesView() {
   }, [selectedNoteId])
 
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full  overflow-hidden">
       <div >
         {!selectedNoteId ? (
           <div className="h-[450px] flex items-center justify-center text-sm text-muted-foreground">

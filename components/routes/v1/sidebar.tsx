@@ -1,5 +1,17 @@
 "use client"
 
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -312,24 +324,50 @@ export function AppSidebar() {
                           }}
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
-                        </Button>
 
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 hover:text-destructive"
-                          title="Delete Forever"
-                          onClick={async () => {
-                            await permanentDelete(note.id)
-                            toast.add({
-                              type: "success",
-                              description: "Note permanently deleted.",
-                            })
-                          }}
-                        >
-                          <XCircle className="w-3.5 h-3.5" />
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            render={
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 hover:text-destructive"
+                                title="Delete Forever"
+
+                                >
+                                <XCircle className="w-3.5 h-3.5" />
+                              </Button>
+                            }
+                          />
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you absolutely sure?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will
+                                permanently delete the expense from our servers.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                              onClick={async () => {
+                                await permanentDelete(note.id)
+                                toast.add({
+                                  type: "success",
+                                  description: "Note restored!",
+                                })
+                              }}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+
                       </div>
                     </div>
                   ))

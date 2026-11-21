@@ -8,7 +8,7 @@ import { useCreateBlockNote } from "@blocknote/react"
 import { BlockNoteView } from "@blocknote/shadcn"
 import "@blocknote/shadcn/style.css"
 import { Button } from "@/components/ui/button"
-import { ImagePlus, X, Check, Loader2 , Table2} from "lucide-react"
+import { ImagePlus, X, Check, Loader2 , Users , Table2 , ShoppingBag ,CalendarClock} from "lucide-react"
 import { useNotes } from "@/components/context/notes-context"
 import {
   BlockNoteSchema,
@@ -20,7 +20,7 @@ import {
   SuggestionMenuController,
 } from "@blocknote/react"
 import { PiggyBank } from "lucide-react"
-import { BudgetTrackerBlock , QuickAddBlock , TagLedgerBlock} from "./customblocks"
+import { BudgetTrackerBlock , QuickAddBlock , TagLedgerBlock , SplitBillBlock, WishlistBlock,RecurringBillBlock,} from "./customblocks"
 
 export type NoteBlock = {
   id: string
@@ -50,6 +50,9 @@ const schema = BlockNoteSchema.create({
     budgetTracker: BudgetTrackerBlock(),
     quickAdd: QuickAddBlock(),
     tagLedger: TagLedgerBlock(),
+    splitBill: SplitBillBlock(),
+    wishlist: WishlistBlock(),
+    recurringBill: RecurringBillBlock(),
   },
 })
 
@@ -94,16 +97,20 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
   // Initialize BlockNote editor with existing blocks from Supabase
   const editor = useCreateBlockNote({
     schema,
-    initialContent:sanitizeBlocks(initialNote.blocks)
-    //   Array.isArray(initialNote.blocks) && initialNote.blocks.length > 0
-    //     ? initialNote.blocks
-    //     : undefined,
-    // uploadFile: async (file: File) => {
-    //   const {
-    //     data: { user },
-    //   } = await supabase.auth.getUser()
-    //   if (!user) throw new Error("Not authenticated")
-    //   return await uploadNoteImage(file, user.id)
+    // initialContent:sanitizeBlocks(initialNote.blocks)
+
+      initialContent:
+        Array.isArray(initialNote.blocks) && initialNote.blocks.length > 0
+          ? initialNote.blocks
+          : undefined,
+      uploadFile: async (file: File) => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (!user) throw new Error("Not authenticated")
+        return await uploadNoteImage(file, user.id)
+      },
+
     },
   )
 
@@ -216,7 +223,7 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
       />
 
       {/* --- BLOCKNOTE EDITOR CANVAS --- */}
-      <div className="min-h-[380px]  ">
+      <div className="min-h-[380px]   ">
         <BlockNoteView
           editor={editor}
           slashMenu={false}
@@ -259,6 +266,49 @@ export function NoteEditor({ initialNote }: { initialNote: Note }) {
                                 )
                               },
                             },
+
+                            {
+                              title: "Split Bill",
+                              subtext: "Split a group expense and track who has paid",
+                              aliases: ["split", "iou", "group", "share"],
+                              group: "Finance",
+                              icon: <Users className="w-4 h-4" />,
+                              onItemClick: () => {
+                                editor.insertBlocks(
+                                  [{ type: "splitBill" }],
+                                  editor.getTextCursorPosition().block,
+                                  "after"
+                                )
+                              },
+                  },
+                  {
+                    title: "Recurring Bill",
+                    subtext: "Track a monthly bill and log payment in one click",
+                    aliases: ["bill", "recurring", "rent", "subscription"],
+                    group: "Finance",
+                    icon: <CalendarClock className="w-4 h-4" />,
+                    onItemClick: () => {
+                      editor.insertBlocks(
+                        [{ type: "recurringBill" }],
+                        editor.getTextCursorPosition().block,
+                        "after"
+                      )
+                    },
+                  },
+                  {
+                    title: "Wishlist / Affordability",
+                    subtext: "Check if an item fits your current net balance",
+                    aliases: ["wishlist", "afford", "buy", "want"],
+                    group: "Finance",
+                    icon: <ShoppingBag className="w-4 h-4" />,
+                    onItemClick: () => {
+                      editor.insertBlocks(
+                        [{ type: "wishlist" }],
+                        editor.getTextCursorPosition().block,
+                        "after"
+                      )
+                    },
+                  },
                   {
                     title: "Budget Tracker",
                     subtext: "Track live category spending against a limit",
