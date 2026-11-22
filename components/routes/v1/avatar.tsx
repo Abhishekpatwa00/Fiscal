@@ -59,10 +59,8 @@ export function UserAuthMenu() {
           <AvatarFallback>{initials}</AvatarFallback>
               </Avatar></Button>} />
             <DropdownMenuContent className="w-32">
-              <DropdownMenuGroup>
-                <DropdownMenuItem >Profile</DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
+
+
               <DropdownMenuGroup>
                 <DropdownMenuItem variant="destructive" onClick={signOut}>Log out</DropdownMenuItem>
               </DropdownMenuGroup>

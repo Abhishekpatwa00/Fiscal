@@ -71,7 +71,7 @@ function NotesView() {
                       Loading your note...
                     </div>
                   ) : (
-                    <NoteEditor initialNote={note} />
+                    <NoteEditor key={note.id} initialNote={note} />
                   )
         )}
       </div>

@@ -1,6 +1,6 @@
 "use client"
 
-
+import { NoteTree } from "@/components/routes/notes/note-tree"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -199,55 +199,15 @@ export function AppSidebar() {
                     No notes yet. Click <strong>+</strong> to create one.
                   </div>
                 ) : (
-                  activeNotes.map((note) => {
-                    const isSelected = activeNoteId === note.id
-                    return (
-                      <div
-                        key={note.id}
-                        onClick={() =>
-                          router.push(`/dashboard/notes?id=${note.id}`)
-                        }
-                        className={` group flex items-center justify-between px-2.5 py-2 rounded-md scrollbar-none  cursor-pointer transition-colors ${
-                          isSelected
-                            ? "bg-secondary text-foreground font-medium"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                        }`}
-                      >
-                        <div className="flex items-center scrollbar-none  gap-2 min-w-0 pr-2">
-                          <FileText className="w-3.5 h-3.5 shrink-0 opacity-70" />
-                          <div className="scrollbar-none  min-w-0">
-                            <p className="text-sm truncate leading-tight">
-                              {note.title || "Untitled Note"}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground mt-0.5">
-                              {new Date(note.updated_at).toLocaleDateString(
-                                "en-IN",
-                                {
-                                  day: "numeric",
-                                  month: "short",
-                                }
-                              )}
-                            </p>
-                          </div>
-                        </div>
+                      <NoteTree
 
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onMoveToTrash(note.id)
-                          }}
-                          title="Move to Trash"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    )
-                  })
+                    notes={activeNotes}
+                    activeNoteId={activeNoteId}
+                    onCreateNote={createNote}
+                    onMoveToTrash={onMoveToTrash}
+                  />
                 )}
+
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -351,7 +311,7 @@ export function AppSidebar() {
                               </AlertDialogTitle>
                               <AlertDialogDescription>
                                 This action cannot be undone. This will
-                                permanently delete the expense from our servers.
+                                permanently delete the note from our servers.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -361,7 +321,7 @@ export function AppSidebar() {
                                 await permanentDelete(note.id)
                                 toast.add({
                                   type: "success",
-                                  description: "Note restored!",
+                                  description: "Note Deleted!",
                                 })
                               }}
                               >

@@ -1,3 +1,4 @@
+import { Spinner } from "@/components/ui/spinner"
 import { Geist_Mono, Inter } from "next/font/google"
 import localFont from "next/font/local"
 import { GetUser } from "@/components/routes/auth/getUser"

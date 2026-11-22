@@ -32,7 +32,7 @@ type NotesContextType = {
   trashedNotes: Note[]
   loading: boolean
   refreshNotes: () => Promise<void>
-  createNote: () => Promise<Note | null>
+  createNote: (parentId?: string | null) => Promise<Note | null>
   updateNoteLocalTitle: (id: string, newTitle: string) => void
   moveToTrash: (id: string) => Promise<void>
   restoreNote: (id: string) => Promise<void>
@@ -65,48 +65,76 @@ export function NotesProvider({ children }: { children: ReactNode }) {
         prev.map((n) => (n.id === id ? { ...n, title: newTitle } : n))
       )
   }
-  async function createNote(): Promise<Note | null> {
-      const defaultBlock: NoteBlock = {
-        id: `block-${Date.now()}`,
-        type: "paragraph",
-        content: "",
-      }
+  const createNote = async (parentId: string | null = null) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return null
 
-      const { data, error } = await supabase
-        .from("notes")
-        .insert({
-          title: "Untitled Note",
-          blocks: [defaultBlock],
-          is_deleted: false,
-        })
-        .select()
-        .single()
+    const { data, error } = await supabase
+      .from("notes")
+      .insert({
+        user_id: user.id,
+        parent_id: parentId,
+        title: "Untitled Note",
+        blocks: [],
+      })
+      .select()
+      .single()
 
-      if (error || !data) return null
-
-      const newNote = data as Note
-      setNotes((prev) => [newNote, ...prev])
-      return newNote
+    if (error || !data) {
+      console.error("Failed to create note:", error)
+      return null
     }
-    async function moveToTrash(id: string) {
-        const now = new Date().toISOString()
-        setNotes((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, is_deleted: true, deleted_at: now } : n))
-        )
-        await supabase.from("notes").update({ is_deleted: true, deleted_at: now }).eq("id", id)
-      }
 
-      async function restoreNote(id: string) {
-        setNotes((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, is_deleted: false, deleted_at: null } : n))
-        )
-        await supabase.from("notes").update({ is_deleted: false, deleted_at: null }).eq("id", id)
-      }
+    setNotes((prev) => [data, ...prev])
+    return data
+  }
 
-      async function permanentDelete(id: string) {
-        setNotes((prev) => prev.filter((n) => n.id !== id))
-        await supabase.from("notes").delete().eq("id", id)
-      }
+  function getSubtreeIds(rootId: string, allNotes: Note[]): string[] {
+    const children = allNotes.filter((n) => n.parent_id === rootId)
+    return [
+      rootId,
+      ...children.flatMap((child) => getSubtreeIds(child.id, allNotes)),
+    ]
+  }
+
+  async function moveToTrash(id: string) {
+    const idsToTrash = getSubtreeIds(id, notes)
+    const idSet = new Set(idsToTrash)
+    const now = new Date().toISOString()
+
+    setNotes((prev) =>
+      prev.map((n) =>
+        idSet.has(n.id) ? { ...n, is_deleted: true, deleted_at: now } : n
+      )
+    )
+    await supabase
+      .from("notes")
+      .update({ is_deleted: true, deleted_at: now })
+      .in("id", idsToTrash)
+  }
+
+  async function restoreNote(id: string) {
+    setNotes((prev) =>
+      prev.map((n) =>
+        n.id === id ? { ...n, is_deleted: false, deleted_at: null } : n
+      )
+    )
+    await supabase
+      .from("notes")
+      .update({ is_deleted: false, deleted_at: null })
+      .eq("id", id)
+  }
+
+  async function permanentDelete(id: string) {
+    const idsToDelete = getSubtreeIds(id, notes)
+    const idSet = new Set(idsToDelete)
+
+    setNotes((prev) => prev.filter((n) => !idSet.has(n.id)))
+    await supabase.from("notes").delete().in("id", idsToDelete)
+  }
+
       const activeNotes = notes.filter((n) => !n.is_deleted)
         const trashedNotes = notes.filter((n) => n.is_deleted)
         return (
