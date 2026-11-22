@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
 
   return (
   <div className="flex min-h-dvh flex-col">
-    <div className="px-4 pt-4 md:px-8 lg:px-12" >
+    <div className="px-4 md:px-8 lg:px-12" >
       <Link href="/" aria-label="Home" className="inline-block">
 
           <img
