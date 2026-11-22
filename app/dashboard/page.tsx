@@ -43,9 +43,7 @@ export default function V1() {
   const debitList = expenses.filter((item) => item.type !== "credit")
   const creditList = expenses.filter((item) => item.type === "credit")
 
-  console.log(debitList)
-  console.log(creditList)
-  console.log(expenses)
+
   // Inside your V1 dashboard component:
   const [selectedMonth, setSelectedMonth] = useState<string>("all")
 

@@ -16,7 +16,7 @@ function BudgetTrackerView({
   const { category, limit } = block.props
 
   // DEBUG: Open browser DevTools Console (F12) to verify expenses & item.tag
-  console.log("BudgetTracker expenses:", expenses)
+
 
   const saved = expenses
     .filter((item: any) => {

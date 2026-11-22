@@ -37,7 +37,7 @@ function NotesView() {
   const selectedNoteId = searchParams.get("id")
   const [note, setNote] = useState<Note|null>(null)
   const supabase = createClient()
-  console.log(selectedNoteId)
+
   async function fetchNotes() {
     if (selectedNoteId) {
       setLoading(true)

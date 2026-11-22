@@ -40,7 +40,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       error: authError,
     } = await supabase.auth.getUser()
 
-    console.log("1. Auth user:", user?.id, "Auth error:", authError)
+
 
     if (authError || !user) {
       setLoading(false)
@@ -52,7 +52,6 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       .select("*")
       .eq("user_id", user.id)
 
-    console.log("2. Supabase response -> data:", data, "error:", error)
 
     if (data) setExpenses(data)
     setLoading(false)

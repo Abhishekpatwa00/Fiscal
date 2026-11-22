@@ -80,7 +80,7 @@ export const AddCsv = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) =>
       }))
 
       setExpense(formattedRows)
-      console.log(expense)
+
       setShowReviewTable(true)
 
 

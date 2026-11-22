@@ -106,7 +106,7 @@ export const TableElement = ({
     : undefined
   // ------------------------
 
-  console.log(totalAmount)
+
   async function handleDelete(id: string | number) {
     const { error } = await supabase.from("expense").delete().eq("id", id)
 
