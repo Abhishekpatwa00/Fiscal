@@ -171,10 +171,11 @@ export default function CreditsPage() {
                     tickLine={false}
                     tickFormatter={(v) => `₹${v}`}
                   />
+
                   <Tooltip
-                    formatter={(value: number) => [
-                      `₹${Number(value).toLocaleString("en-IN")}`,
-                      "Credited",
+                    formatter={(value) => [
+                      `₹${Number(value ?? 0).toLocaleString("en-IN")}`,
+                      "Credited", // or "Credited" on the Credits page
                     ]}
                   />
                   <Area
@@ -219,8 +220,8 @@ export default function CreditsPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) =>
-                      `₹${Number(value).toLocaleString("en-IN")}`
+                    formatter={(value) =>
+                      `₹${Number(value ?? 0).toLocaleString("en-IN")}`
                     }
                   />
                   <Legend wrapperStyle={{ fontSize: "12px" }} />

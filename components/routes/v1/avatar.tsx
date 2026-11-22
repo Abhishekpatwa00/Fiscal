@@ -29,10 +29,10 @@ export function UserAuthMenu() {
   if (!user) {
     return (
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
+        <Button variant="ghost" size="sm" >
           <Link href="/login">Log in</Link>
         </Button>
-        <Button size="sm" asChild>
+        <Button size="sm">
           <Link href="/signup">Sign up</Link>
         </Button>
       </div>

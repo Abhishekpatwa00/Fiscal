@@ -166,9 +166,9 @@ export default function ExpensesPage() {
                           tickFormatter={(v) => `₹${v}`}
                         />
                         <Tooltip
-                          formatter={(value: number) => [
-                            `₹${Number(value).toLocaleString("en-IN")}`,
-                            "Spent",
+                          formatter={(value) => [
+                            `₹${Number(value ?? 0).toLocaleString("en-IN")}`,
+                            "Spent", // or "Credited" on the Credits page
                           ]}
                         />
                         <Bar
@@ -211,9 +211,10 @@ export default function ExpensesPage() {
                             />
                           ))}
                         </Pie>
+
                         <Tooltip
-                          formatter={(value: number) =>
-                            `₹${Number(value).toLocaleString("en-IN")}`
+                          formatter={(value) =>
+                            `₹${Number(value ?? 0).toLocaleString("en-IN")}`
                           }
                         />
                         <Legend wrapperStyle={{ fontSize: "12px" }} />
