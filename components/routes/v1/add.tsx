@@ -1,5 +1,6 @@
 "use client"
-import {useFinance} from "@/components/context/finance-context"
+
+import { useFinance } from "@/components/context/finance-context"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,65 +16,63 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { FormEvent, useState } from "react"
-
 import { toast } from "../../ui/toast"
+
 type Expenses = {
   title: string
   amount: number | string
   tag: string
   expense_date: string
-  type:string
+  type: string
 }
 
-
-
-export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
-  const supabase = createClient();
-  const {refreshFinanceData} = useFinance()
-  const initialForm = {
+export const AddExpense = ({ onAddSuccess }: { onAddSuccess: () => void }) => {
+  const supabase = createClient()
+  const { refreshFinanceData } = useFinance()
+  const initialForm: Expenses = {
     title: "",
     amount: 0,
     tag: "",
     expense_date: "",
-    type:"expense"
+    type: "expense",
   }
+
+  const [open, setOpen] = useState(false)
   const [expense, setExpense] = useState<Expenses>(initialForm)
+
   async function checkUser() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     return user?.id
   }
 
-
-
-
-
   const handleSubmit = async (e: FormEvent) => {
-
-    e.preventDefault();
+    e.preventDefault()
     const userId = await checkUser()
 
-    const formData = new FormData(e.target as HTMLFormElement);
-
+    const formData = new FormData(e.target as HTMLFormElement)
     const data = Object.fromEntries(formData as FormData)
 
-
-    const { error } = await supabase.from('expense').insert({
+    const { error } = await supabase.from("expense").insert({
       user_id: userId,
       title: data.title,
       amount: data.amount,
       expense_date: data.expense_date,
       tag: data.tag,
-        type:data.type
+      type: data.type,
     })
+
     if (error) console.log(error)
     if (!error) {
       onAddSuccess()
-        toast.add({
-          type: "success",
-          description: "The expense have been addedd."
-        })
+      toast.add({
+        type: "success",
+        description: "The expense has been added.",
+      })
       setExpense(initialForm)
       await refreshFinanceData()
+      setOpen(false)
     } else {
       toast.add({
         type: "error",
@@ -81,107 +80,131 @@ export const AddExpense = ({ onAddSuccess  }: { onAddSuccess: () => void }) => {
         priority: "high",
       })
     }
-
-
-
-
-
-
-
   }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setExpense({ ...expense, [e.target.name]: e.target.value })
   }
 
   return (
-    <>
-      <Sheet>
-        <SheetTrigger render={
-          <Button variant={"outline"}>Add</Button>
-        } />
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle className="text-lg">Add a new Expense</SheetTitle>
-                      <SheetDescription>
-                        Fill the details of your expense. Click save when you&apos;re done.
-                      </SheetDescription>
-          </SheetHeader>
-          <form onSubmit={handleSubmit}>
-            <div className=" h-[80dvh] flex flex-col  flex-1 auto-rows-min">
-              <div className="grid flex-1 auto-rows-min gap-6 px-4 ">
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger render={<Button variant={"outline"}>Add</Button>} />
+      <SheetContent className="flex h-dvh flex-col">
+        <SheetHeader className="shrink-0">
+          <SheetTitle className="text-lg">Add a new Expense</SheetTitle>
+          <SheetDescription>
+            Fill the details of your expense. Click save when you&apos;re done.
+          </SheetDescription>
+        </SheetHeader>
+
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4">
+            <div className="grid gap-4 pb-4">
+              <div className="grid gap-3">
                 <Label>Transaction Type</Label>
-                            <div className="grid grid-cols-2 gap-3">
-                              <label
-                                className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
-                                  expense.type === "expense"
-                                    ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-400"
-                                    : "border-input hover:bg-accent"
-                                }`}
-                              >
-                                <input
-                                  type="radio"
-                                  name="type"
-                                  value="expense"
-                                  checked={expense.type === "expense"}
-                                  onChange={handleChange}
-                                  className="accent-red-500"
-                                />
-                                Expense (Debit)
-                              </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    className={`flex cursor-pointer items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium transition-colors ${
+                      expense.type === "expense"
+                        ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-400"
+                        : "border-input hover:bg-accent"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="type"
+                      value="expense"
+                      checked={expense.type === "expense"}
+                      onChange={handleChange}
+                      className="accent-red-500"
+                    />
+                    Expense (Debit)
+                  </label>
 
-                              <label
-                                className={`flex items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium cursor-pointer transition-colors ${
-                                  expense.type === "credit"
-                                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                    : "border-input hover:bg-accent"
-                                }`}
-                              >
-                                <input
-                                  type="radio"
-                                  name="type"
-                                  value="credit"
-                                  checked={expense.type === "credit"}
-                                  onChange={handleChange}
-                                  className="accent-emerald-500"
-                                />
-                                Credit (Income)
-                              </label>
-                            </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="title">Title</Label>
-                    <Input onChange={handleChange} id="title" placeholder="Title" name="title" value={expense.title} required  />
-                  </div>
-                  <div className="grid gap-3">
-                    <Label htmlFor="amount">Amount</Label>
-                    <Input onChange={handleChange} id="amount" required type="number" name="amount" value={expense.amount === 0 ? "" : expense.amount} step="0.01" min="0"  placeholder="0.00" />
-                  </div>
-                  <div className="grid gap-3">
-                    <Label htmlFor="expenseDate">Expense Date</Label>
-                    <Input onChange={handleChange} id="expenseDate" name="expense_date" value={expense.expense_date}  type="date" />
-                  </div>
-                  <div className="grid gap-3">
-                    <Label htmlFor="tags">Tag</Label>
-                    <Input onChange={handleChange} id="tags" placeholder="Tag" name="tag" value={expense.tag} required  />
-                  </div>
-
-
-
-
-              </div>
-              <div className="align-bottom">
-                <SheetFooter >
-                          <Button type="submit"  >Save changes</Button>
-                          <SheetClose render={<Button variant="outline">Close</Button>} />
-                </SheetFooter>
+                  <label
+                    className={`flex cursor-pointer items-center justify-center gap-2 rounded-md border p-2.5 text-sm font-medium transition-colors ${
+                      expense.type === "credit"
+                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "border-input hover:bg-accent"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="type"
+                      value="credit"
+                      checked={expense.type === "credit"}
+                      onChange={handleChange}
+                      className="accent-emerald-500"
+                    />
+                    Credit (Income)
+                  </label>
+                </div>
               </div>
 
+              <div className="grid gap-3">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  onChange={handleChange}
+                  id="title"
+                  placeholder="Title"
+                  name="title"
+                  value={expense.title}
+                  required
+                />
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="amount">Amount</Label>
+                <Input
+                  onChange={handleChange}
+                  id="amount"
+                  required
+                  type="number"
+                  name="amount"
+                  value={expense.amount === 0 ? "" : expense.amount}
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="expenseDate">Expense Date</Label>
+                <Input
+                  onChange={handleChange}
+                  id="expenseDate"
+                  name="expense_date"
+                  value={expense.expense_date}
+                  type="date"
+                />
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="tags">Tag</Label>
+                <Input
+                  onChange={handleChange}
+                  id="tags"
+                  placeholder="Tag"
+                  name="tag"
+                  value={expense.tag}
+                  required
+                />
+              </div>
             </div>
+          </div>
 
-          </form>
-        </SheetContent>
-      </Sheet>
-    </>
+          <SheetFooter className="shrink-0">
+            <Button type="submit">Save changes</Button>
+            <SheetClose
+              render={
+                <Button type="button" variant="outline">
+                  Close
+                </Button>
+              }
+            />
+          </SheetFooter>
+        </form>
+      </SheetContent>
+    </Sheet>
   )
-
 }
