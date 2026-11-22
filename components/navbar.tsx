@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { UserAuthMenu } from "./routes/v1/avatar"
 
 
 export function Navbar() {
@@ -11,7 +12,7 @@ export function Navbar() {
 
   return (
     <header className="w-full">
-      <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-8">
+      <nav  className="lg:mx-12 md:mx-8 mx-4 items-center  flex justify-between  " >
         <Link href="/" aria-label="Home">
           <img
             src="/dark-logo.png"
@@ -27,7 +28,7 @@ export function Navbar() {
 
         {/* Desktop */}
         <div className="hidden items-center gap-2 md:flex">
-
+          <UserAuthMenu/>
         </div>
 
         {/* Mobile */}

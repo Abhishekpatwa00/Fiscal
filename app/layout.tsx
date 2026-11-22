@@ -4,6 +4,7 @@ import { GetUser } from "@/components/routes/auth/getUser"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toast"
 import { cn } from "@/lib/utils"
+import { UserProvider } from "@/components/context/user-context"
 import "./globals.css"
 import type { Viewport } from "next"
 
@@ -43,13 +44,13 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>
+        <UserProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </UserProvider>
 
-
-              {children}
-              <Toaster />
-
-        </ThemeProvider>
       </body>
     </html>
   )

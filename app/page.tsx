@@ -1,8 +1,11 @@
+"use client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/navbar"
+import { useUser } from "@/components/context/user-context"
 
 export default function Page() {
+  const { user } = useUser();
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -17,10 +20,16 @@ export default function Page() {
           </span>
           <span>Like Never Before</span>
         </h1>
-
+        {user ? (
+          <Link href="/dashboard">
+            <Button size="lg">Enter Fiscal</Button>
+        </Link>
+        ): (
         <Link href="/signup">
           <Button size="lg">Get Started</Button>
         </Link>
+        )}
+
       </main>
     </div>
   )

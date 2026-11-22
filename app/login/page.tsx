@@ -58,8 +58,8 @@ export default function Login() {
           </Link>
           </div>
         <div className="flex items-center h-full justify-center ">
-          <div className="flex  self-center p-4 ">
-            <Card className="w-md ">
+          <div className="flex   self-center p-4 ">
+            <Card className="w-sm md:w-md ">
                   <CardHeader>
                     <CardTitle>Login to your account</CardTitle>
                     <CardDescription>

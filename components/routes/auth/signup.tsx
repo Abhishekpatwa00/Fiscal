@@ -90,7 +90,7 @@ export const SignUp = () => {
         </div>
         <div className="flex items-center h-full justify-center ">
           <div className="flex self-center p-4   ">
-            <Card className="w-md ">
+            <Card className="w-sm md:w-md ">
                   <CardHeader>
                     <CardTitle>Create your account</CardTitle>
                     <CardDescription>
@@ -124,8 +124,8 @@ export const SignUp = () => {
                       </div>
 
                   </CardContent>
-                <CardFooter className="flex-col gap-2">
-                  {showPopup && <p className="text-sm text-gray-600">
+                <CardFooter className="flex-col gap-4">
+                  {showPopup && <p className="text-sm text-foreground">
                                 We&aposve sent a verification link to <span className="font-semibold">{email}</span>.
                                 Click the link inside the email to activate your account. This window will log you in automatically once verified!
                               </p>}

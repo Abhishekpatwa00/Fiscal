@@ -51,12 +51,16 @@ import {
   FileText,
   Wallet,
 } from "lucide-react"
+import { Avatar } from "@/components/ui/avatar"
+import { UserAuthMenu } from "./avatar"
+import { useUser } from "@/components/context/user-context"
 
 export function AppSidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const activeNoteId = searchParams.get("id")
+  const {user} = useUser()
 
   const {
     activeNotes,
@@ -102,18 +106,17 @@ export function AppSidebar() {
     <Sidebar className="border-r">
       {/* --- BRAND HEADER --- */}
       <SidebarHeader className="px-4 py-4 border-b">
-        <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <img src="/icon.png"></img>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold tracking-tight font-peace">Fiscal</span>
-            <span className="text-[11px] text-muted-foreground">
-              Personal Workspace
-            </span>
-          </div>
-        </Link>
+        <div className="flex gap-2">
+          <UserAuthMenu />
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+
+            <span className="text-sm font-semibold">Personal WorkSpace</span>
+          </Link>
+        </div>
+
       </SidebarHeader>
+
+
 
       <SidebarContent className="px-2 py-3 gap-4">
         {/* --- MAIN NAVIGATION --- */}
