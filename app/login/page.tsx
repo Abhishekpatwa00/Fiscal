@@ -88,9 +88,9 @@ export default function Login() {
   }
 
   return (
-    <div className="flex flex-col h-dvh justify-between">
-      <div className="lg:ml-12 md:ml-8 ml-4">
-        <Link href="/" aria-label="Home">
+    <div className="flex min-h-dvh flex-col">
+      <div className="px-4 pt-4 md:px-8 lg:px-12" >
+        <Link href="/" aria-label="Home" className="inline-block">
           <img
             src="/dark-logo.png"
             alt="Fiscal logo"
@@ -104,9 +104,9 @@ export default function Login() {
         </Link>
       </div>
 
-      <div className="flex items-center h-full justify-center">
-        <div className="flex self-center p-4">
-          <Card className="w-sm md:w-md">
+
+        <div className="flex flex-1 items-center justify-center p-4">
+          <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle>
                 {forgotMode ? "Reset your password" : "Login to your account"}
@@ -203,6 +203,6 @@ export default function Login() {
           </Card>
         </div>
       </div>
-    </div>
+
   )
 }

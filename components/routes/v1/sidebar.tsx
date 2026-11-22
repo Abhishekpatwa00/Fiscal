@@ -33,6 +33,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import {
   Collapsible,
@@ -74,6 +75,7 @@ export function AppSidebar() {
 
   const [isOpen, setIsOpen] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
+  const { isMobile } = useSidebar()
 
   async function onCreateNote() {
     setIsCreating(true)
@@ -235,7 +237,10 @@ export function AppSidebar() {
               </Button>
             }
           />
-          <DropdownMenuContent side="right" align="end" className="w-80 p-2">
+          <DropdownMenuContent
+            side={isMobile ? "top" : "right"}
+              align={isMobile ? "center" : "end"}
+            className="w-80 p-2">
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
                 Recycle Bin ({trashedNotes.length})

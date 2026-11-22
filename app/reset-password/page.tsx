@@ -1,5 +1,5 @@
 "use client"
-
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -56,8 +56,9 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex h-dvh items-center justify-center p-4">
-      <div className="lg:ml-12 md:ml-8 ml-4">
+  <div className="flex min-h-dvh flex-col">
+    <div className="px-4 pt-4 md:px-8 lg:px-12" >
+      <Link href="/" aria-label="Home" className="inline-block">
 
           <img
             src="/dark-logo.png"
@@ -69,9 +70,11 @@ export default function ResetPasswordPage() {
             alt="Fiscal logo"
             className="w-28 dark:hidden sm:w-32"
           />
-
+      </Link>
       </div>
-      <Card className="w-sm md:w-md">
+      <div className="flex flex-1 items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+
         <CardHeader>
           <CardTitle>Set a new password</CardTitle>
           <CardDescription>
@@ -118,7 +121,8 @@ export default function ResetPasswordPage() {
             </Button>
           </CardFooter>
         </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }
